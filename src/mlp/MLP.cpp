@@ -20,9 +20,24 @@ namespace mlp {
             previous_count = node_count;
 
             m_layers.emplace_back(m_batchSize, node_count);
+            m_biases.emplace_back(m_batchSize, node_count);
             m_weights.emplace_back(rows, node_count);
 
             m_context.randomise(m_weights.back(), weight_min, weight_max);
+        }
+
+        for (size_t i = 0; i < m_biases.size(); i++) {
+            float* host_mem = new float[m_biases[i].size()];
+
+            m_context.transfer(m_biases[i], host_mem);
+
+            std::cout << "Layer " << i << " biases:\n" << host_mem[0];
+            for (size_t j = 1; j < m_biases[i].size(); j++) {
+                std::cout << "," << host_mem[1];
+            }
+            std::cout << "\n\n";
+
+            delete[] host_mem;
         }
     }
 

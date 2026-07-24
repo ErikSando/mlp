@@ -31,6 +31,7 @@ namespace mlp {
         size_t m_inputCount;
 
         std::vector<Matrix> m_weights;
+        std::vector<Matrix> m_biases;
         std::vector<Matrix> m_layers; // node values, includes hidden layers and the output layer
     };
 }

@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 
-#include "nn/InputNodes.hpp"
+#include "mlp/InputLayer.hpp"
 
 /*
 IDEAS
@@ -25,7 +25,7 @@ namespace mlp {
 
         Dataset(const std::string& file_path);
 
-        size_t parseBatch(const size_t start_line, const size_t batch_size, std::vector<InputNodes>& inputs);
+        size_t parseBatch(const size_t start_line, const size_t batch_size, std::vector<InputLayer>& inputs);
 
         private:
 

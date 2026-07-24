@@ -7,8 +7,8 @@
 
 namespace mlp {
     // stores input data on the CPU
-    struct InputNodes {
-        InputNodes(size_t count) : data(count) {}
+    struct InputLayer {
+        InputLayer(size_t count) : data(count) {}
         int label;
         std::vector<float> data;
     };

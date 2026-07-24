@@ -9,7 +9,13 @@ namespace mlp {
         Matrix(size_t rows, size_t columns);
         ~Matrix();
 
-        float* data() { return m_data; }
+        Matrix(const Matrix&) = delete;
+        Matrix& operator=(const Matrix&) = delete;
+
+        Matrix(Matrix&& other) noexcept;
+        Matrix& operator=(Matrix&& other) noexcept;
+
+        float* data() { return m_data; } // device memory address of the matrix values
 
         size_t size() { return m_size; }
         size_t rows() { return m_rows; }
@@ -21,6 +27,6 @@ namespace mlp {
         size_t m_rows;
         size_t m_cols;
 
-        float* m_data;
+        float* m_data = nullptr;
     };
 }

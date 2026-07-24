@@ -1,14 +1,17 @@
 #include <iostream>
 
 #include "data/Dataset.hpp"
-#include "nn/InputNodes.hpp"
+#include "device/DeviceContext.hpp"
+#include "mlp/MLP.hpp"
 
 int main() {
     mlp::Dataset training("res/mnist/mnist_train.csv");
 
-    std::vector<mlp::InputNodes> inputs;
+    mlp::DeviceContext context;
 
-    training.parseBatch(3, 4, inputs);
+    std::vector<size_t> layer_sizes = { 10, 10, 10, 10 };
+
+    mlp::MLP mlp(context, layer_sizes);
 
     return 0;
 }

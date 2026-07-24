@@ -55,40 +55,32 @@ namespace mlp {
 
         m_file.seekg(start);
         m_file.read(buffer, size);
-
-        buffer[size] = '\0'; // temporary, to print correctly
     }
 
-    size_t Dataset::parseBatch(const size_t start_line, const size_t batch_size, std::vector<InputLayer>& inputs) {
-        // I think using reserve prevents repeated allocations without needing an assert
-        // assert(inputs.size() == batch_size);
-
-        inputs.reserve(batch_size);
+    size_t Dataset::parseBatch(Batch& batch, const int start_line) {
+        if (start_line != NO_LINE) m_currentLine = static_cast<size_t>(start_line);
 
         m_file.clear();
 
         char buffer[m_maxLineLength];
 
-        // std::cout << m_maxLineLength << "\n\n";
+        size_t data_index = 0;
 
-        for (size_t i = 0; i < batch_size; i++) {
-            readLine(start_line + i, buffer);
+        for (size_t i = 0; i < batch.size; i++) {
+            readLine(m_currentLine + i, buffer);
 
-            // std::cout << buffer << "\n\n";
-
-            inputs.emplace_back(784); // temporarily hard coded
-            InputLayer& back = inputs.back();
+            // inputs.emplace_back(784); // temporarily hard coded
+            // InputLayer& back = inputs.back();
 
             char* c = buffer;
-            size_t data_index = 0;
             int value = 0;
 
-            back.label = *c - '0'; // first character is the label
+            batch.labels[i] = *c - '0'; // first character is the label
             c += 2; // move to the first non-label number
 
             while (*c != '\n' && c < buffer + m_maxLineLength) {
                 if (*c == ',') {
-                    back.data[data_index++] = value;
+                    batch.data[data_index++] = ((float) value) / 1.0f;
                     value = 0;
                 }
                 else if (std::isdigit(*c)) {
@@ -102,10 +94,12 @@ namespace mlp {
                 c++; // say that again?
             }
 
-            back.data[data_index++] = ((float) value) / 255.0f;
+            batch.data[data_index++] = ((float) value) / 1.0f;
             value = 0;
         }
 
-        return (start_line + batch_size) % m_totalLines;
+        m_currentLine = (m_currentLine + batch.size) % m_totalLines;
+
+        return m_currentLine;
     }
 }

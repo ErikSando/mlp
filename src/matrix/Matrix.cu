@@ -15,7 +15,8 @@ namespace mlp {
     }
 
     Matrix::Matrix(Matrix&& other) noexcept
-    : m_size(other.m_size), m_rows(other.m_rows), m_cols(other.m_cols), m_data(other.m_data) {
+    : m_size(other.m_size), m_rows(other.m_rows), m_cols(other.m_cols), m_data(other.m_data)
+    {
         other.m_data = nullptr;
     }
 

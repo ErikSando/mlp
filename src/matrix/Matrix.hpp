@@ -3,6 +3,7 @@
 #include <cstddef>
 
 namespace mlp {
+    // A wrapper for a float array stored on device memory
     class Matrix {
         public:
 

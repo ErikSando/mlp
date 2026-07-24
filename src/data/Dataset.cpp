@@ -62,25 +62,25 @@ namespace mlp {
 
         m_file.clear();
 
-        char buffer[m_maxLineLength];
+        std::vector<char> buffer(m_maxLineLength);
 
         size_t data_index = 0;
 
         for (size_t i = 0; i < batch.size; i++) {
-            readLine(m_currentLine + i, buffer);
+            readLine(m_currentLine + i, buffer.data());
 
             // inputs.emplace_back(784); // temporarily hard coded
             // InputLayer& back = inputs.back();
 
-            char* c = buffer;
+            char* c = buffer.data();
             int value = 0;
 
             batch.labels[i] = *c - '0'; // first character is the label
             c += 2; // move to the first non-label number
 
-            while (*c != '\n' && c < buffer + m_maxLineLength) {
+            while (c < buffer.data() + m_maxLineLength && *c != '\n') {
                 if (*c == ',') {
-                    batch.data[data_index++] = ((float) value) / 1.0f;
+                    batch.data[data_index++] = ((float) value) / 255.0f;
                     value = 0;
                 }
                 else if (std::isdigit(*c)) {
@@ -94,7 +94,7 @@ namespace mlp {
                 c++; // say that again?
             }
 
-            batch.data[data_index++] = ((float) value) / 1.0f;
+            batch.data[data_index++] = ((float) value) / 255.0f;
             value = 0;
         }
 

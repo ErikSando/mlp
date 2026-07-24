@@ -17,22 +17,21 @@ int main() {
 
     training.parseBatch(batch);
 
-    std::cout << batch.data.size() << "\n";
+    mlp.forwardPass(batch);
 
-    size_t index = 0;
+    float* outputs = new float[32 * 10];
 
-    for (size_t i = 0; i < batch.size; i++) {
-        std::cout << "Label: " << batch.labels[i] << "\n";
+    mlp.copyOutputs(outputs);
 
-        std::cout << batch.data[index];
+    for (size_t batch = 0; batch < 32; batch++) {
+        std::cout << "Batch " << batch << ":\n";
+        std::cout << outputs[0 + batch * 10];
 
-        for (size_t j = index + 1; j < index + 784; j++) {
-            std::cout << "," << batch.data[j];
+        for (size_t i = 1; i < 10; i++) {
+            std::cout << ", " << outputs[i + batch * 10];
         }
 
         std::cout << "\n\n";
-
-        index += 784;
     }
 
     return 0;

@@ -31,5 +31,19 @@ int main() {
         std::cout << "\n\n";
     }
 
+    mlp.softmax();
+    mlp.copyOutputs(outputs);
+
+    for (size_t batch = 0; batch < 32; batch++) {
+        std::cout << "Batch " << batch << ":\n";
+        std::cout << outputs[0 + batch * 10];
+
+        for (size_t i = 1; i < 10; i++) {
+            std::cout << ", " << outputs[i + batch * 10];
+        }
+
+        std::cout << "\n\n";
+    }
+
     return 0;
 }

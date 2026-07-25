@@ -24,16 +24,14 @@ namespace mlp {
         void copyOutputs(float* host_outputs);
         // ^^^ use a safer method in the future, the size of host_outputs isnt enforced right now
 
+        void softmax(); // for testing
+
         private:
 
         DeviceContext& m_context;
 
         size_t m_batchSize;
         size_t m_inputCount;
-
-        // std::vector<Matrix> m_weights;
-        // std::vector<Matrix> m_biases;
-        // std::vector<Matrix> m_layers; // node values, includes hidden layers and the output layer
 
         std::vector<Layer> m_layers;
     };

@@ -3,10 +3,10 @@
 #include "matrix/Matrix.hpp"
 
 namespace mlp {
-    constexpr int TILE_SIZE = 16;
-    constexpr int BLOCK_SIZE = 256;
+    constexpr unsigned int TILE_SIZE = 16;
+    constexpr unsigned int BLOCK_SIZE = 256;
 
-    inline size_t block_count(size_t thread_count, size_t block_size) {
+    inline unsigned int block_count(unsigned int thread_count, unsigned int block_size) {
         return (thread_count + block_size - 1) / block_size;
     }
 
@@ -27,7 +27,7 @@ namespace mlp {
         // Calculate C = A + B
         void add(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C);
 
-        // Perform C = A + b
+        // Perform C = A + b, where b is a row matrix, added onto each row in A
         void addBiases(const Matrix& layer, const Matrix& biases, Matrix& output);
 
         // Apply the softmax function on the given input martix, and write the result into the given output matrix

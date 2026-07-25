@@ -5,12 +5,11 @@
 namespace mlp {
     void MLP::forwardPass(Batch& batch) {
         assert(m_batchSize * m_inputCount == batch.data.size());
+        assert(m_layers.size());
 
         Matrix input(m_batchSize, m_inputCount);
 
         m_context.transfer(batch.data.data(), input);
-
-        assert(m_layers.size());
 
         m_context.multiply(input, m_layers[0].weights, m_layers[0].nodes);
         m_context.addBiases(m_layers[0].nodes, m_layers[0].biases, m_layers[0].nodes);
@@ -24,6 +23,10 @@ namespace mlp {
 
             // activation function here
         }
+    }
+
+    void MLP::softmax() { // temporary
+        m_context.softmax(m_layers.back().nodes, m_layers.back().nodes);
     }
 
     void MLP::copyOutputs(float* host_outputs) {

@@ -20,7 +20,7 @@ namespace mlp {
             previous_count = node_count;
 
             m_layers.emplace_back(m_batchSize, node_count);
-            m_biases.emplace_back(m_batchSize, node_count);
+            m_biases.emplace_back(1, node_count);
             m_weights.emplace_back(rows, node_count);
 
             m_context.randomise(m_weights.back(), weight_min, weight_max);

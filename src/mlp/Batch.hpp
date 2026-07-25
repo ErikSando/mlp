@@ -9,7 +9,7 @@
 // store all the data of a batch of input layers (batch size, labels, and input node values)
 
 namespace mlp {
-    // stores input data on the CPU
+    // stores input data in host memory
     struct Batch {
         /*
             batch_size: number of input layers

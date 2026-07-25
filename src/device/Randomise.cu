@@ -36,7 +36,7 @@ namespace mlp {
     void DeviceContext::randomise(Matrix& matrix, float min, float max) {
         cudaError_t err;
 
-        int grid_size = (matrix.size() + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        int grid_size = block_count(matrix.size(), BLOCK_SIZE);
 
         static curandState* states = nullptr;
         static int allocated = 0;

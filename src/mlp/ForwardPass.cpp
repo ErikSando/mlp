@@ -10,26 +10,23 @@ namespace mlp {
 
         m_context.transfer(batch.data.data(), input);
 
-        assert(
-            m_weights.size() && m_layers.size() && m_biases.size() &&
-            m_weights.size() == m_layers.size() && m_layers.size() == m_biases.size()
-        );
+        assert(m_layers.size());
 
-        m_context.multiply(input, m_weights[0], m_layers[0]);
-        m_context.addBiases(m_layers[0], m_biases[0], m_layers[0]);
+        m_context.multiply(input, m_layers[0].weights, m_layers[0].nodes);
+        m_context.addBiases(m_layers[0].nodes, m_layers[0].biases, m_layers[0].nodes);
 
         // activation function here
 
         // If I remember correctly, the output layer uses a seperate activation function. If so, change this:
         for (size_t layer = 1; layer < m_layers.size(); layer++) {
-            m_context.multiply(m_layers[layer - 1], m_weights[layer], m_layers[layer]);
-            m_context.addBiases(m_layers[layer], m_biases[layer], m_layers[layer]);
+            m_context.multiply(m_layers[layer - 1].nodes, m_layers[layer].weights, m_layers[layer].nodes);
+            m_context.addBiases(m_layers[layer].nodes, m_layers[layer].biases, m_layers[layer].nodes);
 
             // activation function here
         }
     }
 
     void MLP::copyOutputs(float* host_outputs) {
-        m_context.transfer(m_layers.back(), host_outputs);
+        m_context.transfer(m_layers.back().nodes, host_outputs);
     }
 }

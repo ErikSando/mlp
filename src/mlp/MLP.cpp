@@ -15,24 +15,21 @@ namespace mlp {
 
         for (size_t i = 1; i < layer_sizes.size(); i++) {
             size_t node_count = layer_sizes[i];
-            size_t rows = previous_count;
+
+            m_layers.emplace_back(batch_size, node_count, previous_count);
 
             previous_count = node_count;
 
-            m_layers.emplace_back(m_batchSize, node_count);
-            m_biases.emplace_back(1, node_count);
-            m_weights.emplace_back(rows, node_count);
-
-            m_context.randomise(m_weights.back(), weight_min, weight_max);
+            m_context.randomise(m_layers.back().weights, weight_min, weight_max);
         }
 
-        for (size_t i = 0; i < m_biases.size(); i++) {
-            float* host_mem = new float[m_biases[i].size()];
+        for (size_t i = 0; i < m_layers.size(); i++) {
+            float* host_mem = new float[m_layers[i].biases.size()];
 
-            m_context.transfer(m_biases[i], host_mem);
+            m_context.transfer(m_layers[i].biases, host_mem);
 
             std::cout << "Layer " << i << " biases:\n" << host_mem[0];
-            for (size_t j = 1; j < m_biases[i].size(); j++) {
+            for (size_t j = 1; j < m_layers[i].biases.size(); j++) {
                 std::cout << "," << host_mem[1];
             }
             std::cout << "\n\n";

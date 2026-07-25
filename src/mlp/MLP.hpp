@@ -1,8 +1,9 @@
 #pragma once
 
 #include "device/DeviceContext.hpp"
-#include "matrix/Matrix.hpp"
+// #include "matrix/Matrix.hpp"
 #include "mlp/Batch.hpp"
+#include "mlp/Layer.hpp"
 
 // things are very experimental right now
 
@@ -30,8 +31,10 @@ namespace mlp {
         size_t m_batchSize;
         size_t m_inputCount;
 
-        std::vector<Matrix> m_weights;
-        std::vector<Matrix> m_biases;
-        std::vector<Matrix> m_layers; // node values, includes hidden layers and the output layer
+        // std::vector<Matrix> m_weights;
+        // std::vector<Matrix> m_biases;
+        // std::vector<Matrix> m_layers; // node values, includes hidden layers and the output layer
+
+        std::vector<Layer> m_layers;
     };
 }

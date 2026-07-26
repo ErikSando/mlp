@@ -25,10 +25,6 @@ namespace mlp {
         }
     }
 
-    void MLP::softmax() { // temporary
-        m_context.softmax(m_layers.back().nodes, m_layers.back().nodes);
-    }
-
     void MLP::copyOutputs(float* host_outputs) {
         m_context.transfer(m_layers.back().nodes, host_outputs);
     }

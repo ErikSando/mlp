@@ -17,7 +17,7 @@
     } while (0)
 
 __global__ void init_rng(curandState* states, const unsigned long seed, const size_t size) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (index >= size) return;
 
@@ -25,7 +25,7 @@ __global__ void init_rng(curandState* states, const unsigned long seed, const si
 }
 
 __global__ void randomize_kernel(float* M, curandState* states, size_t size, float min, float max) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (index >= size) return;
 
@@ -36,7 +36,7 @@ namespace mlp {
     void DeviceContext::randomise(Matrix& matrix, float min, float max) {
         cudaError_t err;
 
-        int grid_size = block_count(matrix.size(), BLOCK_SIZE);
+        unsigned int grid_size = block_count(matrix.size(), BLOCK_SIZE);
 
         static curandState* states = nullptr;
         static int allocated = 0;

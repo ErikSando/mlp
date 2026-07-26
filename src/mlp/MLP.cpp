@@ -22,20 +22,6 @@ namespace mlp {
 
             m_context.randomise(m_layers.back().weights, weight_min, weight_max);
         }
-
-        for (size_t i = 0; i < m_layers.size(); i++) {
-            float* host_mem = new float[m_layers[i].biases.size()];
-
-            m_context.transfer(m_layers[i].biases, host_mem);
-
-            std::cout << "Layer " << i << " biases:\n" << host_mem[0];
-            for (size_t j = 1; j < m_layers[i].biases.size(); j++) {
-                std::cout << "," << host_mem[1];
-            }
-            std::cout << "\n\n";
-
-            delete[] host_mem;
-        }
     }
 
     MLP::~MLP() {

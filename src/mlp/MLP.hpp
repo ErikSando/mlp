@@ -24,8 +24,6 @@ namespace mlp {
         void copyOutputs(float* host_outputs);
         // ^^^ use a safer method in the future, the size of host_outputs isnt enforced right now
 
-        void softmax(); // for testing
-
         private:
 
         DeviceContext& m_context;

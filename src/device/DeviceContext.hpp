@@ -30,6 +30,11 @@ namespace mlp {
         // Perform C = A + b, where b is a row matrix, added onto each row in A
         void addBiases(const Matrix& layer, const Matrix& biases, Matrix& output);
 
+        void sigmoid(const Matrix& input, Matrix& output);
+        void tanh(const Matrix& input, Matrix& output);
+        void relu(const Matrix& input, Matrix& output);
+        void leakyReLU(const Matrix& input, Matrix& output);
+
         // Apply the softmax function on the given input martix, and write the result into the given output matrix
         void softmax(const Matrix& input, Matrix& output);
     };

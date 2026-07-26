@@ -17,14 +17,14 @@
     } while (0)
 
 __global__ void mat_mul_kernel(const float* A, const float* B, float* C, const size_t M, const size_t N, const size_t K) {
-    int row = blockDim.y * blockIdx.y + threadIdx.y;
-    int col = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
+    unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
 
     if (row >= M || col >= N) return; 
 
     float value = 0.0f;
 
-    for (int k = 0; k < K; k++) {
+    for (unsigned int k = 0; k < K; k++) {
         value += A[row * K + k] * B[k * N + col];
     }
 
@@ -32,7 +32,7 @@ __global__ void mat_mul_kernel(const float* A, const float* B, float* C, const s
 }
 
 __global__ void mat_add_kernel(const float* A, const float* B, float* C, const size_t size) {
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
 
     if (index >= size) return;
 
@@ -40,8 +40,8 @@ __global__ void mat_add_kernel(const float* A, const float* B, float* C, const s
 }
 
 __global__ void mat_add_biases_kernel(const float* A, const float* B, float* C, const size_t M, const size_t N) {
-    int row = blockDim.y * blockIdx.y + threadIdx.y;
-    int col = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
+    unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
 
     if (row >= M || col >= N) return;
 

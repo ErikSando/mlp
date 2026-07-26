@@ -62,7 +62,7 @@ namespace mlp {
 
         m_file.clear();
 
-        std::vector<char> buffer(m_maxLineLength);
+        std::vector<char> buffer(m_maxLineLength); // testing showed that making the buffer a member is slower
 
         size_t data_index = 0;
 

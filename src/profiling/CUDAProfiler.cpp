@@ -5,6 +5,8 @@
 
 namespace mlp {
     CUDATaskID CUDAProfiler::startTask(const char* name) {
+        if (!m_enabled) return CUDATaskID();
+
         m_tasks.emplace_back(std::make_unique<CUDATask>(name));
         m_tasks.back()->start();
 
@@ -12,6 +14,8 @@ namespace mlp {
     }
 
     void CUDAProfiler::endTask(CUDATaskID id) {
+        if (!m_enabled) return;
+
         m_tasks[id.m_index]->end();
     }
 

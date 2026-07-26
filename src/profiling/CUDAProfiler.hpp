@@ -14,7 +14,7 @@ namespace mlp {
 
         private:
 
-        size_t m_index;
+        size_t m_index = 1 << (sizeof(size_t) - 1);
     };
 
     class CUDAProfiler {
@@ -27,10 +27,14 @@ namespace mlp {
 
         void print();
 
+        void enable() { m_enabled = true; }
+        void disable() { m_enabled = false; }
+
         private:
 
         const char* m_name;
 
+        bool m_enabled = true;
         bool m_inTask = false;
 
         std::vector<std::unique_ptr<CUDATask>> m_tasks;

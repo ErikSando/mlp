@@ -197,7 +197,7 @@ __global__ void softmax_kernel(const float* input, float* output, const size_t r
 }
 
 namespace mlp {
-    void DeviceContext::softmax(const Matrix& input, Matrix& output) {
+    void DeviceContext::softmax(const Matrix& input, Matrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());

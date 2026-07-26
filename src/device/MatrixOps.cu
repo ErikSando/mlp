@@ -49,7 +49,7 @@ __global__ void mat_add_biases_kernel(const float* A, const float* B, float* C, 
 }
 
 namespace mlp {
-    void DeviceContext::multiply(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) {
+    void DeviceContext::multiply(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const {
         assert(matrix_A.columns() == matrix_B.rows());
         assert(matrix_C.rows() == matrix_A.rows());
         assert(matrix_C.columns() == matrix_B.columns());
@@ -72,7 +72,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
-    void DeviceContext::add(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) {
+    void DeviceContext::add(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const {
         assert(matrix_A.size() == matrix_B.size());
         assert(matrix_B.size() == matrix_C.size());
         assert(matrix_A.rows() == matrix_B.rows());
@@ -93,7 +93,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
-    void DeviceContext::addBiases(const Matrix& layer, const Matrix& biases, Matrix& output) {
+    void DeviceContext::addBiases(const Matrix& layer, const Matrix& biases, Matrix& output) const {
         assert(layer.size() == output.size());
         assert(layer.rows() == output.rows());
         assert(layer.columns() == output.columns());

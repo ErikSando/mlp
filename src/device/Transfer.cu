@@ -16,12 +16,12 @@
     } while (0)
 
 namespace mlp {
-    void DeviceContext::transfer(const Matrix& src, float* dest) {
+    void DeviceContext::transfer(const Matrix& src, float* dest) const {
         cudaError_t err = cudaMemcpy(dest, src.data(), src.size() * sizeof(float), cudaMemcpyDeviceToHost);
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
     }
 
-    void DeviceContext::transfer(float* src, Matrix& dest) {
+    void DeviceContext::transfer(float* src, Matrix& dest) const {
         cudaError_t err = cudaMemcpy(dest.data(), src, dest.size() * sizeof(float), cudaMemcpyHostToDevice);
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
     }

@@ -33,7 +33,7 @@ __global__ void randomize_kernel(float* M, curandState* states, size_t size, flo
 }
 
 namespace mlp {
-    void DeviceContext::randomise(Matrix& matrix, float min, float max) {
+    void DeviceContext::randomise(Matrix& matrix, float min, float max) const {
         cudaError_t err;
 
         unsigned int grid_size = block_count(matrix.size(), BLOCK_SIZE);

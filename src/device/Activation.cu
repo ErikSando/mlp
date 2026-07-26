@@ -49,7 +49,7 @@ __global__ void leaky_relu_kernel(const float* input, float* output, const size_
 }
 
 namespace mlp {
-    void DeviceContext::sigmoid(const Matrix& input, Matrix& output) {
+    void DeviceContext::sigmoid(const Matrix& input, Matrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());
@@ -67,7 +67,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
-    void DeviceContext::tanh(const Matrix& input, Matrix& output) {
+    void DeviceContext::tanh(const Matrix& input, Matrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());
@@ -85,7 +85,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
-    void DeviceContext::relu(const Matrix& input, Matrix& output) {
+    void DeviceContext::relu(const Matrix& input, Matrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());
@@ -103,7 +103,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
-    void DeviceContext::leakyReLU(const Matrix& input, Matrix& output) {
+    void DeviceContext::leakyReLU(const Matrix& input, Matrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());

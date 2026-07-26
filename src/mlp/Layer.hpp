@@ -19,6 +19,6 @@ namespace mlp {
 
         Activation activation;
 
-        void pass(const DeviceContext& context, const Matrix& previous_layer);
+        void propagate(const DeviceContext& context, const Matrix& previous_layer);
     };
 }

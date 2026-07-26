@@ -17,11 +17,13 @@ namespace mlp {
         for (size_t i = 1; i < layer_sizes.size(); i++) {
             size_t node_count = layer_sizes[i];
 
-            m_layers.emplace_back(m_batchSize, node_count, previous_count, i == layer_sizes.size() - 1 ? output_activation : hidden_activation);
+            bool isOutputLayer = i == layer_sizes.size() - 1;
+            Activation activation = isOutputLayer ? output_activation : hidden_activation;
+
+            m_layers.emplace_back(m_batchSize, node_count, previous_count, activation);
+            m_context.randomise(m_layers.back().weights, weight_min, weight_max);
 
             previous_count = node_count;
-
-            m_context.randomise(m_layers.back().weights, weight_min, weight_max);
         }
     }
 

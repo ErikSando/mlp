@@ -36,7 +36,6 @@ namespace mlp {
         DeviceContext& m_context;
 
         size_t m_batchSize;
-        // size_t m_inputCount;
 
         std::vector<Layer> m_layers; // includes all layers: input, hidden, output
     };

@@ -10,7 +10,7 @@ namespace mlp {
         m_context.transfer(batch.data.data(),  m_layers[0].nodes);
 
         for (size_t layer = 1; layer < m_layers.size(); layer++) {
-            m_layers[layer].pass(m_context, m_layers[layer - 1].nodes);
+            m_layers[layer].propagate(m_context, m_layers[layer - 1].nodes);
         }
     }
 

@@ -16,15 +16,6 @@
         std::abort();\
     } while (0)
 
-/*
-    thoughts
-
-    i will use a 2D layout, each row is one batch
-
-    first, need to compute the sum of the exponents
-    then, divide the exponents by the sun
-*/
-
 __global__ void softmax_kernel(const float* input, float* output, const size_t rows, const size_t cols) { // I will be using input = output but its probably good to seperate the output for versatility
     unsigned int row = blockIdx.x; // i dont think the choice between unsigned int or size_t matters
 

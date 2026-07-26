@@ -69,9 +69,6 @@ namespace mlp {
         for (size_t i = 0; i < batch.size; i++) {
             readLine(m_currentLine + i, buffer.data());
 
-            // inputs.emplace_back(784); // temporarily hard coded
-            // InputLayer& back = inputs.back();
-
             char* c = buffer.data();
             int value = 0;
 

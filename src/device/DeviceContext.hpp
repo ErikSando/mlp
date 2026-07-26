@@ -1,6 +1,21 @@
 #pragma once
 
+#include <iostream>
+
 #include "matrix/Matrix.hpp"
+
+#include "profiling/CUDAProfiler.hpp"
+
+#define CUDA_ERROR(err, message)\
+    do {\
+        std::cout << "\033[31m" << "[Error]\033[0m "\
+                  << message\
+                  << cudaGetErrorString(err) << '\n'\
+                  << "File: " << __FILE__ << '\n'\
+                  << "Line: " << __LINE__ << '\n'\
+                  << "Function: " << __func__ << '\n';\
+        std::abort();\
+    } while (0)
 
 namespace mlp {
     constexpr unsigned int TILE_SIZE = 16;
@@ -13,13 +28,15 @@ namespace mlp {
     class DeviceContext {
         public:
 
+        DeviceContext(CUDAProfiler* profiler = nullptr) : m_profiler(profiler) {}
+
         // I marked every member function as const so I can use const DeviceContext& in function arguments but I don't know if that has any benefits
 
         // Transfer data from device memory to host memory
         void transfer(const Matrix& src, float* dest) const;
 
         // Transfer data from host memory to device memory
-        void transfer(float* src, Matrix& dest) const;
+        void transfer(const float* src, Matrix& dest) const;
 
         // Randomise each value in the matrix to a value between min and max
         void randomise(Matrix& matrix, float min, float max) const;
@@ -42,5 +59,14 @@ namespace mlp {
 
         // Apply the softmax function on the given input martix, and write the result into the given output matrix
         void softmax(const Matrix& input, Matrix& output) const;
+
+        inline void synchronise() const {
+            cudaError_t err = cudaDeviceSynchronize();
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+        }
+
+        private:
+
+        CUDAProfiler* m_profiler = nullptr;
     };
 }

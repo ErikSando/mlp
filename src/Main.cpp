@@ -4,9 +4,13 @@
 #include "device/DeviceContext.hpp"
 #include "mlp/MLP.hpp"
 
+#include "profiling/Profiler.hpp"
+
 int main() {
+    mlp::CUDAProfiler cuda_profiler;
+
     mlp::Dataset training("res/mnist/mnist_train.csv");
-    mlp::DeviceContext context;
+    mlp::DeviceContext context(&cuda_profiler);
 
     std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
 
@@ -33,6 +37,8 @@ int main() {
     }
 
     delete[] outputs;
+
+    cuda_profiler.print();
 
     return 0;
 }

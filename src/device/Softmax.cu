@@ -5,17 +5,6 @@
 
 #include "device/DeviceContext.hpp"
 
-#define CUDA_ERROR(err, message)\
-    do {\
-        std::cout << "\033[31m" << "[Error]\033[0m "\
-                  << message\
-                  << cudaGetErrorString(err) << '\n'\
-                  << "File: " << __FILE__ << '\n'\
-                  << "Line: " << __LINE__ << '\n'\
-                  << "Function: " << __func__ << '\n';\
-        std::abort();\
-    } while (0)
-
 __global__ void softmax_kernel(const float* input, float* output, const size_t rows, const size_t cols) { // I will be using input = output but its probably good to seperate the output for versatility
     unsigned int row = blockIdx.x; // i dont think the choice between unsigned int or size_t matters
 
@@ -196,13 +185,23 @@ namespace mlp {
 
         cudaError_t err;
 
+        CUDATaskID task;
+
+        if (m_profiler) {
+            task = m_profiler->startTask("Softmax");
+        }
+
         // BLOCK_SIZE is definitely far larger than needed for a digit classification model, but I don't think it matters
         softmax_kernel<<<input.rows(), BLOCK_SIZE>>>(input.data(), output.data(), input.rows(), input.columns());
+
+        if (m_profiler) {
+            m_profiler->endTask(task);
+        }
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA softmax error: ");
 
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+        // err = cudaDeviceSynchronize();
+        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 }

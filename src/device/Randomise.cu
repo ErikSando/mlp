@@ -5,17 +5,6 @@
 
 #include "device/DeviceContext.hpp"
 
-#define CUDA_ERROR(err, message)\
-    do {\
-        std::cout << "\033[31m" << "[Error]\033[0m "\
-                  << message\
-                  << cudaGetErrorString(err) << '\n'\
-                  << "File: " << __FILE__ << '\n'\
-                  << "Line: " << __LINE__ << '\n'\
-                  << "Function: " << __func__ << '\n';\
-        std::abort();\
-    } while (0)
-
 __global__ void init_rng(curandState* states, const unsigned long seed, const size_t size) {
     unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 

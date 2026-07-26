@@ -5,17 +5,6 @@
 
 #include "device/DeviceContext.hpp"
 
-#define CUDA_ERROR(err, message)\
-    do {\
-        std::cout << "\033[31m" << "[Error]\033[0m "\
-                  << message\
-                  << cudaGetErrorString(err) << '\n'\
-                  << "File: " << __FILE__ << '\n'\
-                  << "Line: " << __LINE__ << '\n'\
-                  << "Function: " << __func__ << '\n';\
-        std::abort();\
-    } while (0)
-
 __global__ void sigmoid_kernel(const float* input, float* output, const size_t size) {
     unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -63,8 +52,8 @@ namespace mlp {
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA sigmoid error: ");
 
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+        // err = cudaDeviceSynchronize();
+        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
     void DeviceContext::tanh(const Matrix& input, Matrix& output) const {
@@ -81,8 +70,8 @@ namespace mlp {
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA tanh error: ");
 
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+        // err = cudaDeviceSynchronize();
+        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
     void DeviceContext::relu(const Matrix& input, Matrix& output) const {
@@ -99,8 +88,8 @@ namespace mlp {
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA ReLU error: ");
 
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+        // err = cudaDeviceSynchronize();
+        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
     void DeviceContext::leakyReLU(const Matrix& input, Matrix& output) const {
@@ -112,12 +101,22 @@ namespace mlp {
 
         unsigned int grid_size = block_count(input.size(), BLOCK_SIZE);
 
+        CUDATaskID task;
+
+        if (m_profiler) {
+            task = m_profiler->startTask("Leaky ReLU");
+        }
+
         leaky_relu_kernel<<<grid_size, BLOCK_SIZE>>>(input.data(), output.data(), input.size(), 0.01f);
+
+        if (m_profiler) {
+            m_profiler->endTask(task);
+        }
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA leaky ReLU error: ");
 
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+        // err = cudaDeviceSynchronize();
+        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 }

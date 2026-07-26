@@ -5,17 +5,6 @@
 
 #include "device/DeviceContext.hpp"
 
-#define CUDA_ERROR(err, message)\
-    do {\
-        std::cout << "\033[31m" << "[Error]\033[0m "\
-                  << message\
-                  << cudaGetErrorString(err) << '\n'\
-                  << "File: " << __FILE__ << '\n'\
-                  << "Line: " << __LINE__ << '\n'\
-                  << "Function: " << __func__ << '\n';\
-        std::abort();\
-    } while (0)
-
 __global__ void mat_mul_kernel(const float* A, const float* B, float* C, const size_t M, const size_t N, const size_t K) {
     unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
     unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
@@ -63,13 +52,23 @@ namespace mlp {
             block_count(matrix_A.rows(), block.y)
         );
 
+        CUDATaskID task;
+
+        if (m_profiler) {
+            task = m_profiler->startTask("Matrix multiplication");
+        }
+
         mat_mul_kernel<<<grid, block>>>(matrix_A.data(), matrix_B.data(), matrix_C.data(), matrix_A.rows(), matrix_B.columns(), matrix_A.columns());
+
+        if (m_profiler) {
+            m_profiler->endTask(task);
+        }
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix multiplication error: ");
 
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+        // err = cudaDeviceSynchronize();
+        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
     void DeviceContext::add(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const {
@@ -84,13 +83,23 @@ namespace mlp {
 
         int grid_size = (matrix_A.size() + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
+        CUDATaskID task;
+
+        if (m_profiler) {
+            task = m_profiler->startTask("Matrix addition");
+        }
+
         mat_add_kernel<<<grid_size, BLOCK_SIZE>>>(matrix_A.data(), matrix_B.data(), matrix_C.data(), matrix_A.size());
+
+        if (m_profiler) {
+            m_profiler->endTask(task);
+        }
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix addition error: ");
 
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+        // err = cudaDeviceSynchronize();
+        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
     void DeviceContext::addBiases(const Matrix& layer, const Matrix& biases, Matrix& output) const {
@@ -109,12 +118,22 @@ namespace mlp {
             block_count(output.rows(), block.y)
         );
 
+        CUDATaskID task;
+
+        if (m_profiler) {
+            task = m_profiler->startTask("Matrix addition (biases)");
+        }
+
         mat_add_biases_kernel<<<grid, block>>>(layer.data(), biases.data(), output.data(), output.rows(), output.columns());
+
+        if (m_profiler) {
+            m_profiler->endTask(task);
+        }
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix addition error: ");
 
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+        // err = cudaDeviceSynchronize();
+        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 }

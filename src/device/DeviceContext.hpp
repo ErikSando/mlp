@@ -18,7 +18,7 @@
     } while (0)
 
 namespace mlp {
-    constexpr unsigned int TILE_SIZE = 16;
+    constexpr unsigned int TILE_SIZE = 32;
     constexpr unsigned int BLOCK_SIZE = 256;
 
     inline unsigned int block_count(unsigned int thread_count, unsigned int block_size) {
@@ -81,6 +81,8 @@ namespace mlp {
             activation: activation function type
         */
         void propagate(const Matrix& last_activations, Matrix& activations, const Matrix& weights, const Matrix& biases, const Activation activation) const;
+
+        void propagateOld(const Matrix& input, Matrix& output, const Matrix& weights, const Matrix& biases, const Activation activation) const; // for testing
 
         inline void synchronise() const {
             cudaError_t err = cudaDeviceSynchronize();

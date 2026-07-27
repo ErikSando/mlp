@@ -7,22 +7,10 @@ namespace mlp {
     }
 
     void Layer::propagate(const DeviceContext& context, const Matrix& previous_layer) {
-        // context.multiply(previous_layer, m_weights, m_nodes);
-        // context.addBiases(m_nodes, m_biases, m_nodes);
-
-        // context.propagate(previous_layer, m_nodes, m_weights, m_biases);
-
-        // switch (m_activation) {
-        //     case Activation::SIGMOID:      context.sigmoid(m_nodes, m_nodes); break;
-        //     case Activation::TANH:         context.tanh(m_nodes, m_nodes); break;
-        //     case Activation::RELU:         context.relu(m_nodes, m_nodes); break;
-        //     case Activation::LEAKY_RELU:   context.leakyReLU(m_nodes, m_nodes); break;
-
-        //     case Activation::SOFTMAX:      context.softmax(m_nodes, m_nodes); break;
-
-        //     default: break;
-        // }
-
         context.propagate(previous_layer, m_nodes, m_weights, m_biases, m_activation);
+    }
+
+    void Layer::propagateOld(const DeviceContext& context, const Matrix& previous_layer) {
+        context.propagateOld(previous_layer, m_nodes, m_weights, m_biases, m_activation);
     }
 }

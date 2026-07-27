@@ -23,6 +23,8 @@ namespace mlp {
 
         void forwardPass(Batch& batch);
 
+        void forwardPassOld(Batch& batch); // for testing
+
         // im thinking the forward pass function will have no return type and pass the values through the network
         // and the output values can be read using another function
         // i think this makes sense considering the node values are on the GPU anyway

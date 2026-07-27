@@ -1,75 +1,56 @@
 #include <iostream>
 
-#include "data/Dataset.hpp"
-#include "device/DeviceContext.hpp"
-#include "mlp/MLP.hpp"
+#include <random>
 
-#include "profiling/CUDAProfiler.hpp"
+#include "device/DeviceContext.hpp"
+
 #include "profiling/Profiler.hpp"
 
 int main() {
-    constexpr size_t BATCH_SIZE = 1024;
-
     mlp::CUDAProfiler cuda_profiler;
     mlp::Profiler profiler;
 
-    mlp::Dataset training("res/mnist/mnist_train.csv");
     mlp::DeviceContext context(&cuda_profiler);
 
-    // std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
-    std::vector<size_t> layer_sizes = { 784, 2048, 2048, 1024, 512, 256, 10 };
+    std::vector<float> A(256 * 256);
+    std::vector<float> B(256 * 256);
+    std::vector<float> C(256 * 256);
+    std::vector<float> D(256 * 256);
 
-    mlp::MLP mlp(context, BATCH_SIZE);
-    mlp.init(layer_sizes);
+    mlp::Matrix mA(256, 256);
+    mlp::Matrix mB(256, 256);
+    mlp::Matrix mC(256, 256);
+    mlp::Matrix mD(256, 256);
 
-    mlp::Batch batch(BATCH_SIZE, 784);
-
-    // I'm using the profiler like a benchmarker here? I don't really know the meanings
-    // I think benchmarking is measuring the time taken to complete a task
-    // And profiling is measuring the share of computation time of seperate tasks
-
-    // profiler.startTask("Batch parsing");
-    training.parseBatch(batch);
-    // profiler.endTask();
-
-    // profiler.startTask("Forward pass");
-    mlp.forwardPass(batch);
-    // profiler.endTask();
-
-    // float* outputs = new float[BATCH_SIZE * 10];
-
-    // mlp.copyOutputs(outputs);
-
-    // for (size_t batch = 0; batch < BATCH_SIZE; batch++) {
-    //     std::cout << "Batch " << batch << ":\n";
-    //     std::cout << outputs[0 + batch * 10];
-
-    //     for (size_t i = 1; i < 10; i++) {
-    //         std::cout << ", " << outputs[i + batch * 10];
-    //     }
-
-    //     std::cout << "\n\n";
-    // }
-
-    // delete[] outputs;
+    for (int i = 0; i < A.size(); i++) {
+        A[i] = std::rand() * 20 - 10;
+        B[i] = std::rand() * 20 - 10;
+    }
 
     cuda_profiler.disable();
 
-    profiler.startTask("Batch parsing");
-    for (int i = 0; i < 100; i++) {
-        training.parseBatch(batch);
+    context.transfer(A.data(), mA);
+    context.transfer(B.data(), mB);
+
+    cuda_profiler.enable();
+
+    for (int i = 0; i < 5; i++) {
+        context.multiplyOld(mA, mB, mC);
+        context.multiply(mA, mB, mD);
     }
-    profiler.endTask();
 
-    profiler.startTask("Forward passes");
-    for (int i = 0; i < 100; i++) {
-        mlp.forwardPass(batch);
-    }
-    profiler.endTask();
-
-    profiler.print();
-
+    cuda_profiler.disable();
     cuda_profiler.print();
+
+    context.transfer(mC, C.data());
+    context.transfer(mD, D.data());
+
+    for (int i = 0; i < C.size(); i++) {
+        if (C[i] != D[i]) {
+            std::cout << "Incorrect result\n";
+            break;
+        }
+    }
 
     return 0;
 }

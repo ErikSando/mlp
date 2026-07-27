@@ -49,6 +49,8 @@ namespace mlp {
 
         // Calculate C = AB
         void multiply(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const;
+        // Calculate C = AB
+        void multiplyOld(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const;
 
         // Calculate C = A + B
         void add(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const;

@@ -93,16 +93,11 @@ namespace mlp {
         unsigned int grid_size = block_count(input.size(), BLOCK_SIZE);
 
         CUDATaskID task;
-
-        if (m_profiler) {
-            task = m_profiler->startTask("Leaky ReLU");
-        }
+        if (m_profiler) task = m_profiler->startTask("Leaky ReLU");
 
         leaky_relu_kernel<<<grid_size, BLOCK_SIZE>>>(input.data(), output.data(), input.size(), 0.01f);
 
-        if (m_profiler) {
-            m_profiler->endTask(task);
-        }
+        if (m_profiler) m_profiler->endTask(task);
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA leaky ReLU error: ");

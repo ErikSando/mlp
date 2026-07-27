@@ -16,7 +16,7 @@ namespace mlp {
         unsigned int tid = threadIdx.x;
         unsigned int stride = blockDim.x;
 
-        __shared__ float shared[mlp::BLOCK_SIZE]; // size of shared[] needs to match blockDim.x, which is equal to mlp::BLOCK_SIZE
+        __shared__ float shared[BLOCK_SIZE]; // size of shared[] needs to match blockDim.x, which is equal to mlp::BLOCK_SIZE
 
         float local_max = -__FLT_MAX__;
 
@@ -185,16 +185,11 @@ namespace mlp {
         cudaError_t err;
 
         CUDATaskID task;
-
-        if (m_profiler) {
-            task = m_profiler->startTask("Softmax");
-        }
+        if (m_profiler) task = m_profiler->startTask("Softmax");
 
         softmax_kernel<<<input.rows(), BLOCK_SIZE>>>(input.data(), output.data(), input.rows(), input.columns());
 
-        if (m_profiler) {
-            m_profiler->endTask(task);
-        }
+        if (m_profiler) m_profiler->endTask(task);
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA softmax error: ");

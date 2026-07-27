@@ -6,7 +6,8 @@
 #include "device/DeviceContext.hpp"
 
 namespace mlp {
-    __global__ void mat_mul_kernel(const float* A, const float* B, float* C, const size_t M, const size_t N, const size_t K) {
+    // used for verifying correctness of the changes I am making
+    __global__ void mat_mul_kernel_old(const float* A, const float* B, float* C, const size_t M, const size_t N, const size_t K) {
         unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
         unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -19,6 +20,53 @@ namespace mlp {
         }
 
         C[row * N + col] = value;
+    }
+
+    // based on https://siboehm.com/articles/22/CUDA-MMM
+
+    __global__ void mat_mul_kernel(const float* A, const float* B, float* C, const size_t M, const size_t N, const size_t K) {
+        unsigned int tid = threadIdx.x;
+
+        unsigned int thread_row = tid / TILE_SIZE;
+        unsigned int thread_col = tid % TILE_SIZE;
+
+        unsigned int cache_row = blockIdx.y;
+        unsigned int cache_col = blockIdx.x;
+
+        unsigned int row = cache_row * TILE_SIZE + thread_row;
+        unsigned int col = cache_col * TILE_SIZE + thread_col;
+
+        __shared__ float As[TILE_SIZE * TILE_SIZE];
+        __shared__ float Bs[TILE_SIZE * TILE_SIZE];
+
+        A += cache_row * TILE_SIZE * K;
+        B += cache_col * TILE_SIZE;
+        C += cache_row * TILE_SIZE * N + cache_col * TILE_SIZE;
+
+        float temp = 0.0f;
+
+        for (unsigned int i = 0; i < K; i += TILE_SIZE) {
+            float newAs = 0.0f;
+            float newBs = 0.0f;
+
+            if (row < M && i + thread_col < K) newAs = A[thread_row * K + i + thread_col];
+            if (col < N && i + thread_row < K) newBs = B[(thread_row + i) * N + thread_col];
+
+            As[thread_row * TILE_SIZE + thread_col] = newAs;
+            Bs[thread_row * TILE_SIZE + thread_col] = newBs;
+
+            __syncthreads();
+
+            for (unsigned int di = 0; di < TILE_SIZE; di++) {
+                temp += As[thread_row * TILE_SIZE + di] * Bs[di * TILE_SIZE + thread_col];
+            }
+
+            __syncthreads();
+        }
+
+        if (row < M && col < N) {
+            C[thread_row * N + thread_col] = temp;
+        }
     }
 
     __global__ void mat_add_kernel(const float* A, const float* B, float* C, const size_t size) {
@@ -45,6 +93,31 @@ namespace mlp {
 
         cudaError_t err;
 
+        dim3 block(TILE_SIZE * TILE_SIZE);
+
+        dim3 grid(
+            block_count(matrix_B.columns(), TILE_SIZE),
+            block_count(matrix_A.rows(), TILE_SIZE)
+        );
+
+        CUDATaskID task;
+        if (m_profiler) task = m_profiler->startTask("Matrix multiplication      ");
+
+        mat_mul_kernel<<<grid, block>>>(matrix_A.data(), matrix_B.data(), matrix_C.data(), matrix_A.rows(), matrix_B.columns(), matrix_A.columns());
+
+        if (m_profiler) m_profiler->endTask(task);
+
+        err = cudaGetLastError();
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix multiplication error: ");
+    }
+
+    void DeviceContext::multiplyOld(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const {
+        assert(matrix_A.columns() == matrix_B.rows());
+        assert(matrix_C.rows() == matrix_A.rows());
+        assert(matrix_C.columns() == matrix_B.columns());
+
+        cudaError_t err;
+
         dim3 block(TILE_SIZE, TILE_SIZE);
 
         dim3 grid(
@@ -53,16 +126,11 @@ namespace mlp {
         );
 
         CUDATaskID task;
+        if (m_profiler) task = m_profiler->startTask("Matrix multiplication (old)");
 
-        if (m_profiler) {
-            task = m_profiler->startTask("Matrix multiplication");
-        }
+        mat_mul_kernel_old<<<grid, block>>>(matrix_A.data(), matrix_B.data(), matrix_C.data(), matrix_A.rows(), matrix_B.columns(), matrix_A.columns());
 
-        mat_mul_kernel<<<grid, block>>>(matrix_A.data(), matrix_B.data(), matrix_C.data(), matrix_A.rows(), matrix_B.columns(), matrix_A.columns());
-
-        if (m_profiler) {
-            m_profiler->endTask(task);
-        }
+        if (m_profiler) m_profiler->endTask(task);
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix multiplication error: ");
@@ -81,16 +149,11 @@ namespace mlp {
         int grid_size = (matrix_A.size() + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
         CUDATaskID task;
-
-        if (m_profiler) {
-            task = m_profiler->startTask("Matrix addition");
-        }
+        if (m_profiler) task = m_profiler->startTask("Matrix addition");
 
         mat_add_kernel<<<grid_size, BLOCK_SIZE>>>(matrix_A.data(), matrix_B.data(), matrix_C.data(), matrix_A.size());
 
-        if (m_profiler) {
-            m_profiler->endTask(task);
-        }
+        if (m_profiler) m_profiler->endTask(task);
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix addition error: ");
@@ -113,16 +176,11 @@ namespace mlp {
         );
 
         CUDATaskID task;
-
-        if (m_profiler) {
-            task = m_profiler->startTask("Matrix addition (biases)");
-        }
+        if (m_profiler) task = m_profiler->startTask("Matrix addition (biases)");
 
         mat_add_biases_kernel<<<grid, block>>>(layer.data(), biases.data(), output.data(), output.rows(), output.columns());
 
-        if (m_profiler) {
-            m_profiler->endTask(task);
-        }
+        if (m_profiler) m_profiler->endTask(task);
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix addition error: ");

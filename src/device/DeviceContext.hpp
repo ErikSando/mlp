@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cassert>
 #include <iostream>
 
 #include "matrix/Matrix.hpp"
-
 #include "profiling/CUDAProfiler.hpp"
 
 #define CUDA_ERROR(err, message)\
@@ -24,6 +24,12 @@ namespace mlp {
     inline unsigned int block_count(unsigned int thread_count, unsigned int block_size) {
         return (thread_count + block_size - 1) / block_size;
     }
+
+    enum class Activation { // not sure where to put this, leaving it here for now
+        NONE,
+        SIGMOID, TANH, RELU, LEAKY_RELU, // hidden layer activation functions
+        SOFTMAX // output activation functions
+    };
 
     class DeviceContext {
         public:
@@ -56,9 +62,23 @@ namespace mlp {
         void tanh(const Matrix& input, Matrix& output) const;
         void relu(const Matrix& input, Matrix& output) const;
         void leakyReLU(const Matrix& input, Matrix& output) const;
-
-        // Apply the softmax function on the given input martix, and write the result into the given output matrix
         void softmax(const Matrix& input, Matrix& output) const;
+
+        // Loss functions
+
+        void mse() const;
+        void cce(const Matrix& output, const Matrix& target) const;
+        void hinge() const;
+
+        /*
+            Propagation function (L_n+1 = activation(L_n W + b) fused into one kernel, L_n is the nth layer)
+            last_activations: the nodes in the layer being propagated from
+            activations: the nodes in the layer being propagated into
+            weights: weights matrix
+            biases: biases matrix (really a vector)
+            activation: activation function type
+        */
+        void propagate(const Matrix& last_activations, Matrix& activations, const Matrix& weights, const Matrix& biases, const Activation activation) const;
 
         inline void synchronise() const {
             cudaError_t err = cudaDeviceSynchronize();

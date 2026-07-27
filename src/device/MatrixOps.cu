@@ -5,39 +5,39 @@
 
 #include "device/DeviceContext.hpp"
 
-__global__ void mat_mul_kernel(const float* A, const float* B, float* C, const size_t M, const size_t N, const size_t K) {
-    unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
-    unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
+namespace mlp {
+    __global__ void mat_mul_kernel(const float* A, const float* B, float* C, const size_t M, const size_t N, const size_t K) {
+        unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
+        unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (row >= M || col >= N) return; 
+        if (row >= M || col >= N) return; 
 
-    float value = 0.0f;
+        float value = 0.0f;
 
-    for (unsigned int k = 0; k < K; k++) {
-        value += A[row * K + k] * B[k * N + col];
+        for (unsigned int k = 0; k < K; k++) {
+            value += A[row * K + k] * B[k * N + col];
+        }
+
+        C[row * N + col] = value;
     }
 
-    C[row * N + col] = value;
-}
+    __global__ void mat_add_kernel(const float* A, const float* B, float* C, const size_t size) {
+        unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
 
-__global__ void mat_add_kernel(const float* A, const float* B, float* C, const size_t size) {
-    unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
+        if (index >= size) return;
 
-    if (index >= size) return;
+        C[index] = A[index] + B[index];
+    }
 
-    C[index] = A[index] + B[index];
-}
+    __global__ void mat_add_biases_kernel(const float* A, const float* B, float* C, const size_t M, const size_t N) {
+        unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
+        unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
 
-__global__ void mat_add_biases_kernel(const float* A, const float* B, float* C, const size_t M, const size_t N) {
-    unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
-    unsigned int col = blockDim.x * blockIdx.x + threadIdx.x;
+        if (row >= M || col >= N) return;
 
-    if (row >= M || col >= N) return;
+        C[row * N + col] = A[row * N + col] + B[col];
+    }
 
-    C[row * N + col] = A[row * N + col] + B[col];
-}
-
-namespace mlp {
     void DeviceContext::multiply(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const {
         assert(matrix_A.columns() == matrix_B.rows());
         assert(matrix_C.rows() == matrix_A.rows());
@@ -66,9 +66,6 @@ namespace mlp {
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix multiplication error: ");
-
-        // err = cudaDeviceSynchronize();
-        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
     void DeviceContext::add(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const {
@@ -97,9 +94,6 @@ namespace mlp {
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix addition error: ");
-
-        // err = cudaDeviceSynchronize();
-        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 
     void DeviceContext::addBiases(const Matrix& layer, const Matrix& biases, Matrix& output) const {
@@ -132,8 +126,5 @@ namespace mlp {
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix addition error: ");
-
-        // err = cudaDeviceSynchronize();
-        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
     }
 }

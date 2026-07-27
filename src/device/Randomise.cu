@@ -5,23 +5,23 @@
 
 #include "device/DeviceContext.hpp"
 
-__global__ void init_rng(curandState* states, const unsigned long seed, const size_t size) {
-    unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (index >= size) return;
-
-    curand_init(seed, index, 0, &states[index]);
-}
-
-__global__ void randomize_kernel(float* M, curandState* states, size_t size, float min, float max) {
-    unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (index >= size) return;
-
-    M[index] = curand_uniform(&states[index]) * (max - min) + min;
-}
-
 namespace mlp {
+    __global__ void init_rng(curandState* states, const unsigned long seed, const size_t size) {
+        unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (index >= size) return;
+
+        curand_init(seed, index, 0, &states[index]);
+    }
+
+    __global__ void randomize_kernel(float* M, curandState* states, size_t size, float min, float max) {
+        unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (index >= size) return;
+
+        M[index] = curand_uniform(&states[index]) * (max - min) + min;
+    }
+
     void DeviceContext::randomise(Matrix& matrix, float min, float max) const {
         cudaError_t err;
 

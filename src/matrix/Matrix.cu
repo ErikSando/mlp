@@ -20,7 +20,6 @@ namespace mlp {
         other.m_data = nullptr;
     }
 
-
     Matrix& Matrix::operator=(Matrix&& other) noexcept {
         if (this != &other) {
             cudaFree(m_data);

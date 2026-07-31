@@ -22,8 +22,8 @@ namespace mlp {
             const Loss loss_function = Loss::CCE
         );
 
-        void forwardPass(Batch& batch);
-        void backwardPass();
+        void forwardPass(const Batch& batch);
+        void backwardPass(const Batch& batch);
 
         // im thinking the forward pass function will have no return type and pass the values through the network
         // and the output values can be read using another function

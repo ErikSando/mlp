@@ -97,8 +97,19 @@ namespace mlp {
             Use a kernel to compute the gradients for a layer, using the previous layers' result for the next (starting at the output layer)
         */
 
-        void computeGradients(const Matrix& activations, const Activation activation, const Loss loss, Matrix& gradients) const; // output layer
-        void computeGradients(const Matrix& last_gradients, const Matrix& activations, const Activation activation, const Loss loss, Matrix& gradients) const; // hidden layer
+        void computeGradients(
+            const Matrix& last_activations, const Matrix& activations,
+            const size_t n_last_activations,
+            const std::vector<int>& labels,
+            const Activation activation, const Loss loss,
+            Matrix& gradients
+        ) const; // output layer
+
+        void computeGradients(
+            const Matrix& last_gradients, const Matrix& activations,
+            const Activation activation, const Loss loss,
+            Matrix& gradients
+        ) const; // hidden layers
 
         inline void synchronise() const {
             cudaError_t err = cudaDeviceSynchronize();

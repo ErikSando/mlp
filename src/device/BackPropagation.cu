@@ -21,38 +21,50 @@ namespace mlp {
 
     */
 
-    // I've gotta change the kernel dimensions I think, I need one thread for each weight connecting two layers
-
     template<typename TActivation, typename TLoss>
-    __global__ void compute_gradients_kernel(const float* last_gradients, const float* activations, const size_t n_last_gradients, const size_t n_activations, const size_t batch_size, float* gradients) {
-        unsigned int lgi = blockIdx.x * blockDim.x + threadIdx.x;
-        unsigned int ai = blockIdx.y * blockDim.y + threadIdx.y;
+    __global__ void compute_gradients_kernel(
+        const float* last_gradients, const float* activations,
+        const size_t n_last_gradients, const size_t n_activations, const size_t batch_size,
+        float* gradients
+    ) {
+        unsigned int last_gradient_index = blockIdx.x * blockDim.x + threadIdx.x;
+        unsigned int activation_index = blockIdx.y * blockDim.y + threadIdx.y;
         unsigned int batch = blockIdx.z * blockDim.z + threadIdx.z;
 
-        if (lgi >= n_last_gradients || ai >= n_activations || batch >= batch_size) return;
+        if (last_gradient_index >= n_last_gradients || activation_index >= n_activations || batch >= batch_size) return;
+
+        // unsigned int weight_index = activation_index * n_activations + last_gradient_index;
+
+        // gradients[weight_index] = weight_index / 10.0f;
 
         // I'm preeeeetty sure that the gradients are averaged across batches
     }
 
     template<typename TActivation, typename TLoss>
-    __global__ void compute_output_gradients_kernel(const float* activations, const size_t n_activations, const size_t batch_size, float* gradients) {
-        unsigned int ai = blockIdx.x * blockDim.x + threadIdx.x;
-        unsigned int batch = blockIdx.y * blockDim.y + threadIdx.y;
+    __global__ void compute_output_gradients_kernel(
+        const float* last_activations, const float* activations,
+        const size_t n_activations, const size_t n_last_activations, const size_t batch_size,
+        const int* labels, float* gradients
+    ) {
+        unsigned int last_activation_index = blockIdx.x * blockDim.x + threadIdx.x;
+        unsigned int activation_index = blockIdx.y * blockDim.y + threadIdx.y;
+        unsigned int batch = blockIdx.z * blockDim.z + threadIdx.z;
 
-        if (ai >= n_activations || batch >= batch_size) return;
+        if (last_activation_index >= n_last_activations || activation_index >= n_activations || batch >= batch_size) return;
 
+        if (activation_index == labels[batch]) {
+            unsigned int weight_index = last_activation_index * n_activations + activation_index;
+
+            gradients[weight_index] += -last_activations[last_activation_index] * (1 - activations[activation_index]);
+        }
     }
-
-    // void DeviceContext::backPropagate(const Loss loss) const {
-
-    // }
 
     void DeviceContext::computeGradients(const Matrix& last_gradients, const Matrix& activations, const Activation activation, const Loss loss, Matrix& gradients) const {
         assert(last_gradients.rows() == activations.rows());
 
         cudaError_t err;
 
-        dim3 block(TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        dim3 block(8, 8, 8);
 
         dim3 grid(
             block_count(last_gradients.columns(), block.x),
@@ -66,17 +78,24 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute hidden layer gradients error: ");
     }
 
-    void DeviceContext::computeGradients(const Matrix& activations, const Activation activation, const Loss loss, Matrix& gradients) const {
+    void DeviceContext::computeGradients(
+        const Matrix& last_activations, const Matrix& activations,
+        const size_t n_last_activations,
+        const std::vector<int>& labels,
+        const Activation activation, const Loss loss,
+        Matrix& gradients) const
+    {
         cudaError_t err;
 
-        dim3 block(TILE_SIZE, TILE_SIZE);
+        dim3 block(8, 8, 8);
 
         dim3 grid(
-            block_count(activations.columns(), block.x),
-            block_count(activations.rows(), block.y)
+            block_count(n_last_activations, block.x),
+            block_count(activations.columns(), block.y),
+            block_count(activations.rows(), block.z)
         );
 
-        compute_output_gradients_kernel<LeakyReLU, CCE><<<grid, block>>>(activations.data(), activations.columns(), activations.rows(), gradients.data());
+        compute_output_gradients_kernel<LeakyReLU, CCE><<<grid, block>>>(last_activations.data(), activations.data(), activations.columns(), n_last_activations, activations.rows(), labels.data(), gradients.data());
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute output layer gradients error: ");

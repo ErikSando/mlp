@@ -3,7 +3,7 @@
 #include "mlp/MLP.hpp"
 
 namespace mlp {
-    void MLP::forwardPass(Batch& batch) {
+    void MLP::forwardPass(const Batch& batch) {
         assert(m_batchSize == m_layers[0].nodes.rows());
         assert(batch.data.size() == m_layers[0].nodes.size());
 

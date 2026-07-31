@@ -87,6 +87,19 @@ namespace mlp {
         */
         void propagate(const Matrix& last_activations, Matrix& activations, const Matrix& weights, const Matrix& biases, const Activation activation) const;
 
+        void computeLoss(const Matrix& output, const Matrix& target, Matrix& result, const Loss loss) const;
+
+        // void backPropagate(const Matrix& outputs, const Loss loss) const;
+
+        /*
+            Ideas for back propagation
+
+            Use a kernel to compute the gradients for a layer, using the previous layers' result for the next (starting at the output layer)
+        */
+
+        void computeGradients(const Matrix& activations, const Activation activation, const Loss loss, Matrix& gradients) const; // output layer
+        void computeGradients(const Matrix& last_gradients, const Matrix& activations, const Activation activation, const Loss loss, Matrix& gradients) const; // hidden layer
+
         inline void synchronise() const {
             cudaError_t err = cudaDeviceSynchronize();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");

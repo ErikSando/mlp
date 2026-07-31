@@ -23,8 +23,7 @@ namespace mlp {
         );
 
         void forwardPass(Batch& batch);
-
-        void forwardPassOld(Batch& batch); // for testing
+        void backwardPass();
 
         // im thinking the forward pass function will have no return type and pass the values through the network
         // and the output values can be read using another function

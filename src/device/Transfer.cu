@@ -6,6 +6,8 @@
 
 namespace mlp {
     void DeviceContext::transfer(const Matrix& src, float* dest) const {
+        synchronise();
+
         CUDATaskID task;
         if (m_profiler) task = m_profiler->startTask("Download");
 

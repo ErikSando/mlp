@@ -4,49 +4,10 @@
 #include <cuda_runtime.h>
 
 #include "device/Activation.cuh"
-// #include "device/Propagation.cuh"
 #include "device/Softmax.cuh"
 #include "device/DeviceContext.hpp"
 
 namespace mlp {
-    struct NoActivation {
-        __device__ static float activate(float x) {
-            return x;
-        }
-    };
-
-    struct Sigmoid {
-        __device__ static float activate(float x) {
-            return 1.0f / (1.0f + expf(-x));
-        }
-    };
-
-    struct Tanh {
-        __device__ static float activate(float x) {
-            return tanhf(x);
-        }
-    };
-
-    struct ReLU {
-        __device__ static float activate(float x) {
-            return x >= 0.0f ? x : 0.0f;
-        }
-
-        __device__ static float derivative(float x) {
-            return x >= 0.0f ? 1.0f : 0.0f;
-        }
-    };
-
-    struct LeakyReLU {
-        __device__ static float activate(float x) {
-            return x >= 0.0f ? x : 0.01f * x;
-        }
-
-        __device__ static float derivative(float x) {
-            return x >= 0.0f ? 1.0f : 0.01f;
-        }
-    };
-
     template<typename TActivation = NoActivation>
     __global__ void propagate_kernel_tiled(
         const float* input, float* output, const float* weights, const float* biases,
@@ -70,7 +31,7 @@ namespace mlp {
         weights += cache_col * TILE_SIZE;
         output += cache_row * TILE_SIZE * output_count + cache_col * TILE_SIZE;
 
-        float temp = 0.0f;
+        float temp = biases[col];
 
         for (unsigned int i = 0; i < input_count; i += TILE_SIZE) {
             float input_shared_value = 0.0f;
@@ -92,7 +53,7 @@ namespace mlp {
         }
 
         if (row < batch_size && col < output_count) {
-            output[thread_row * output_count + thread_col] = TActivation::activate(temp + biases[col]);
+            output[thread_row * output_count + thread_col] = TActivation::activate(temp);
         }
     }
 
@@ -123,6 +84,7 @@ namespace mlp {
         cudaError_t err;
 
         dim3 block(TILE_SIZE * TILE_SIZE);
+        // dim3 block(TILE_SIZE, TILE_SIZE); // if using untiled
 
         dim3 grid(
             block_count(weights.columns(), TILE_SIZE),
@@ -134,23 +96,23 @@ namespace mlp {
 
         switch (activation) {
             case Activation::SIGMOID:
-                propagate_kernel<Sigmoid><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<Sigmoid><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
             break;
 
             case Activation::TANH:
-                propagate_kernel<Tanh><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<Tanh><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
             break;
 
             case Activation::RELU:
-                propagate_kernel<ReLU><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<ReLU><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
             break;
 
             case Activation::LEAKY_RELU:
-                propagate_kernel<LeakyReLU><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<LeakyReLU><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
             break;
 
             case Activation::SOFTMAX:
-                propagate_kernel<<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
 
                 CUDATaskID sm_task;
                 if (m_profiler) sm_task = m_profiler->startTask("Softmax"); // this is like a sub task, it overlaps with layer propagation, but i havent accounted for this in the profiler

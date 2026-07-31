@@ -29,4 +29,34 @@ namespace mlp {
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA layer propagation error: ");
     }
+
+    void DeviceContext::computeLoss(const Matrix& output, const Matrix& target, Matrix& result, const Loss loss) const {
+        assert(output.size() == target.size());
+        assert(output.rows() == target.rows());
+        assert(output.columns() == target.columns());
+
+        cudaError_t err;
+
+        dim3 block(TILE_SIZE, TILE_SIZE);
+
+        dim3 grid(
+            block_count(result.rows(), block.x),
+            block_count(result.columns(), block.y)
+        );
+
+        switch (loss) {
+            case Loss::MSE:
+
+            break;
+
+            case Loss::CCE:
+                cce_kernel<<<grid, block>>>(output.data(), target.data(), output.columns(), output.rows(), result.data());
+            break;
+
+            default: break;
+        }
+
+        err = cudaGetLastError();
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA layer propagation error: ");
+    }
 }

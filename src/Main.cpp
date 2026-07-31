@@ -17,40 +17,37 @@ int main() {
 
     constexpr size_t BATCH_SIZE = 32;
 
-    std::vector<size_t> layer_sizes = { 784, 512, 256, 128, 64, 10 };
+    std::vector<size_t> layer_sizes = { 784, 2048, 2048, 1024, 512, 256, 128, 64, 10 };
 
     mlp::MLP model(context, BATCH_SIZE);
     model.init(layer_sizes);
 
     mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
+    dataset.parseBatch(batch);
 
-    float test_outputs[30] = {
-        0.05f, 0.35f, 0.05f, 0.05f, 0.15f, 0.05f, 0.05f, 0.15f, 0.05f, 0.05f,
-        0.05f, 0.05f, 0.15f, 0.05f, 0.35f, 0.05f, 0.05f, 0.05f, 0.05f, 0.15f,
-        0.05f, 0.05f, 0.05f, 0.35f, 0.05f, 0.05f, 0.15f, 0.05f, 0.15f, 0.05f
-    };
+    profiler.startTask("Forward passes");
 
-    float test_targets[30] = {
-        0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f
-    };
+    for (int i = 0; i < 500; i++) {
+        model.forwardPass(batch);
+    }
 
-    mlp::Matrix outputs(3, 10);
-    mlp::Matrix targets(3, 10);
-    mlp::Matrix results(3, 1);
+    float* host_outputs = new float[BATCH_SIZE * layer_sizes.back()];
+    model.copyOutputs(host_outputs);
 
-    context.transfer(test_outputs, outputs);
-    context.transfer(test_targets, targets);
+    profiler.endTask();
+    profiler.print();
 
-    context.cce(outputs, targets, results);
-    context.synchronise();
+    for (int b = 0; b < BATCH_SIZE; b++) {
+        std::cout << "Batch " << b + 1 << ":\n";
+        for (int i = 0; i < layer_sizes.back(); i++) {
+            std::cout << "  " << host_outputs[b * layer_sizes.back() + i];
+        }
+        std::cout << "\n\n";
+    }
 
-    float host_results[3];
+    delete[] host_outputs;
 
-    context.transfer(results, host_results);
-
-    std::cout << host_results[0] << ", " << host_results[1] << ", " << host_results[2] << "\n";
+    model.backwardPass();
 
     return 0;
 }

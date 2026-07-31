@@ -3,15 +3,54 @@
 
 #include <cuda_runtime.h>
 
+#include "device/Activation.cuh"
 #include "device/DeviceContext.hpp"
 
 namespace mlp {
+    // struct NoActivation {
+    //     __device__ static float activate(float x) {
+    //         return x;
+    //     }
+    // };
+
+    // struct Sigmoid {
+    //     __device__ static float activate(float x) {
+    //         return 1.0f / (1.0f + expf(-x));
+    //     }
+    // };
+
+    // struct Tanh {
+    //     __device__ static float activate(float x) {
+    //         return tanhf(x);
+    //     }
+    // };
+
+    // struct ReLU {
+    //     __device__ static float activate(float x) {
+    //         return fmaxf(0.0f, x);
+    //     }
+
+    //     __device__ static float derivative(float x) {
+    //         return x >= 0.0f ? 1.0f : 0.0f;
+    //     }
+    // };
+
+    // struct LeakyReLU {
+    //     __device__ static float activate(float x) {
+    //         return x >= 0.0f ? x : 0.01f * x;
+    //     }
+
+    //     __device__ static float derivative(float x) {
+    //         return x >= 0.0f ? 1.0f : 0.01f;
+    //     }
+    // };
+
     __global__ void sigmoid_kernel(const float* input, float* output, const size_t size) {
         unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
 
         if (index >= size) return;
 
-        output[index] = 1 / (1 + expf(-input[index]));
+        output[index] = Sigmoid::activate(input[index]);
     }
 
     __global__ void tanh_kernel(const float* input, float* output, const size_t size) {
@@ -19,7 +58,7 @@ namespace mlp {
 
         if (index >= size) return;
 
-        output[index] = tanhf(input[index]);
+        output[index] = Tanh::activate(input[index]);
     }
 
     __global__ void relu_kernel(const float* input, float* output, const size_t size) {
@@ -27,15 +66,15 @@ namespace mlp {
 
         if (index >= size) return;
 
-        output[index] = fmaxf(0, input[index]);
+        output[index] = ReLU::activate(input[index]);
     }
 
-    __global__ void leaky_relu_kernel(const float* input, float* output, const size_t size, const float a) {
+    __global__ void leaky_relu_kernel(const float* input, float* output, const size_t size) {
         unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
 
         if (index >= size) return;
 
-        output[index] = input[index] >= 0 ? input[index] : a * input[index];
+        output[index] = LeakyReLU::activate(input[index]);
     }
 
     void DeviceContext::sigmoid(const Matrix& input, Matrix& output) const {
@@ -95,7 +134,7 @@ namespace mlp {
         CUDATaskID task;
         if (m_profiler) task = m_profiler->startTask("Leaky ReLU");
 
-        leaky_relu_kernel<<<grid_size, BLOCK_SIZE>>>(input.data(), output.data(), input.size(), 0.01f);
+        leaky_relu_kernel<<<grid_size, BLOCK_SIZE>>>(input.data(), output.data(), input.size());
 
         if (m_profiler) m_profiler->endTask(task);
 

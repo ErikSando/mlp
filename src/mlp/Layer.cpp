@@ -9,8 +9,4 @@ namespace mlp {
     void Layer::propagate(const DeviceContext& context, const Matrix& previous_layer) {
         context.propagate(previous_layer, m_nodes, m_weights, m_biases, m_activation);
     }
-
-    void Layer::propagateOld(const DeviceContext& context, const Matrix& previous_layer) {
-        context.propagateOld(previous_layer, m_nodes, m_weights, m_biases, m_activation);
-    }
 }

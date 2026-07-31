@@ -4,7 +4,10 @@
 #include "mlp/MLP.hpp"
 
 namespace mlp {
-    void MLP::init(std::vector<size_t>& layer_sizes, const Activation hidden_activation, const Activation output_activation) {
+    void MLP::init(std::vector<size_t>& layer_sizes, const Activation hidden_activation, const Activation output_activation, const Loss loss_function)
+    {
+        m_lossFunction = loss_function;
+
         size_t node_count = layer_sizes[0];
 
         float weight_max = std::sqrt(2.0f / static_cast<float>(node_count));

@@ -11,14 +11,15 @@ namespace mlp {
     class MLP {
         public:
 
-        MLP(DeviceContext& device_context, const size_t batch_size) : m_context(device_context), m_batchSize(batch_size) {}
+        MLP(DeviceContext& device_context, const size_t batch_size) : m_context(device_context), m_batchSize(batch_size), m_loss(batch_size, 1) {}
         ~MLP();
 
         // Construct the layers of the network, specifying the sizes and activation functions
         void init(
             std::vector<size_t>& layer_sizes,
             const Activation hidden_activation = Activation::LEAKY_RELU,
-            const Activation output_activation = Activation::SOFTMAX
+            const Activation output_activation = Activation::SOFTMAX,
+            const Loss loss_function = Loss::CCE
         );
 
         void forwardPass(Batch& batch);
@@ -40,5 +41,8 @@ namespace mlp {
         size_t m_batchSize;
 
         std::vector<Layer> m_layers; // includes all layers: input, hidden, output
+
+        Loss m_lossFunction;
+        Matrix m_loss; // used as a vector
     };
 }

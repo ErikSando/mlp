@@ -31,6 +31,10 @@ namespace mlp {
         SOFTMAX // output activation functions
     };
 
+    enum class Loss {
+        MSE, CCE
+    };
+
     class DeviceContext {
         public:
 
@@ -67,9 +71,10 @@ namespace mlp {
         void softmax(const Matrix& input, Matrix& output) const;
 
         // Loss functions
+        // Might merge these with a back propagation kernel like with the forward propagation kerne;
 
         void mse() const;
-        void cce(const Matrix& output, const Matrix& target) const;
+        void cce(const Matrix& output, const Matrix& target, Matrix& result) const;
         void hinge() const;
 
         /*
@@ -81,8 +86,6 @@ namespace mlp {
             activation: activation function type
         */
         void propagate(const Matrix& last_activations, Matrix& activations, const Matrix& weights, const Matrix& biases, const Activation activation) const;
-
-        void propagateOld(const Matrix& input, Matrix& output, const Matrix& weights, const Matrix& biases, const Activation activation) const; // for testing
 
         inline void synchronise() const {
             cudaError_t err = cudaDeviceSynchronize();

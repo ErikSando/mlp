@@ -96,8 +96,8 @@ namespace mlp {
         dim3 block(TILE_SIZE * TILE_SIZE);
 
         dim3 grid(
-            block_count(matrix_B.columns(), TILE_SIZE),
-            block_count(matrix_A.rows(), TILE_SIZE)
+            block_count(matrix_C.columns(), TILE_SIZE),
+            block_count(matrix_C.rows(), TILE_SIZE)
         );
 
         CUDATaskID task;
@@ -121,8 +121,8 @@ namespace mlp {
         dim3 block(TILE_SIZE, TILE_SIZE);
 
         dim3 grid(
-            block_count(matrix_B.columns(), block.x),
-            block_count(matrix_A.rows(), block.y)
+            block_count(matrix_C.columns(), block.x),
+            block_count(matrix_C.rows(), block.y)
         );
 
         CUDATaskID task;

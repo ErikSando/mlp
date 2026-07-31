@@ -13,8 +13,6 @@ namespace mlp {
 
         void propagate(const DeviceContext& context, const Matrix& previous_layer);
 
-        void propagateOld(const DeviceContext& context, const Matrix& previous_layer); // for testing
-
         private:
 
         Matrix m_nodes;

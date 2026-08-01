@@ -2,6 +2,8 @@
 
 #include <vector>
 
+// #include "data/Sample.hpp"
+
 // not really sure how to design array sizing and stuff, so for now im just going to use vectors and make everything flexible
 // will optimise later maybe
 
@@ -16,9 +18,12 @@ namespace mlp {
             input_count: number of input nodes per input layer
         */
         Batch(size_t batch_size, size_t input_count) : size(batch_size), labels(batch_size), data(batch_size * input_count) {}
+        // Batch(size_t batch_size, size_t input_count) : size(batch_size), samples(batch_size) {}
 
         size_t size;
         std::vector<int> labels;
         std::vector<float> data;
+
+        // std::vector<Sample> samples;
     };
 }

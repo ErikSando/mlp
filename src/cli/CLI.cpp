@@ -19,7 +19,8 @@ namespace mlp {
     }
 
     void CommandLoop() {
-        mlp::Dataset dataset("res/mnist/mnist_train.csv");
+        mlp::Dataset train_dataset("res/mnist/mnist_train.csv");
+        mlp::Dataset test_dataset("res/mnist/mnist_test.csv");
 
         mlp::CUDAProfiler cuda_profiler;
         mlp::Profiler profiler;
@@ -30,13 +31,20 @@ namespace mlp {
 
         std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
 
-        mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
-        dataset.parseBatch(batch);
+        // mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
+        // train_dataset.parseBatch(batch);
 
         mlp::MLP model(context, BATCH_SIZE);
         model.init(layer_sizes);
-        model.forwardPass(batch);
-        model.backwardPass(batch);
+
+        // for (int i = 0; i < 1000; i++) {
+        //     mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
+        //     train_dataset.parseBatch(batch);
+        //     model.forwardPass(batch);
+        //     model.backwardPass(batch);
+        // }
+
+        Test(model, test_dataset);
 
         std::string command;
 

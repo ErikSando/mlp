@@ -59,6 +59,14 @@ namespace mlp {
         }
     }
 
+    __global__ void optimise_kernel(float* weights, const float* gradients, const size_t n_weights, const float learning_rate) {
+        unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (index >= n_weights) return;
+
+        weights[index] += gradients[index] * learning_rate;
+    }
+
     void DeviceContext::computeGradients(const Matrix& last_gradients, const Matrix& activations, const Activation activation, const Loss loss, Matrix& gradients) const {
         assert(last_gradients.rows() == activations.rows());
 
@@ -99,5 +107,18 @@ namespace mlp {
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute output layer gradients error: ");
+    }
+
+    void DeviceContext::optimiseLayer(Matrix& weights, const Matrix& gradients, const float learning_rate) const {
+        assert(weights.size() == gradients.size());
+
+        cudaError_t err;
+
+        unsigned int grid_size = block_count(weights.size(), TILE_SIZE);
+
+        optimise_kernel<<<grid_size, TILE_SIZE>>>(weights.data(), gradients.data(), weights.size(), learning_rate);
+
+        err = cudaGetLastError();
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA optimise layer error: ");
     }
 }

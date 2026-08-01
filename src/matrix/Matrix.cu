@@ -34,4 +34,12 @@ namespace mlp {
 
         return *this;
     }
+
+    DeviceInt::DeviceInt(const int value) {
+        cudaError_t err = cudaMalloc((void**) &m_data, sizeof(int));
+        if (err != cudaSuccess) throw std::runtime_error(cudaGetErrorString(err));
+
+        err = cudaMemcpy((void*) m_data, (void*) &value, sizeof(int), cudaMemcpyHostToDevice);
+        // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
+    }
 }

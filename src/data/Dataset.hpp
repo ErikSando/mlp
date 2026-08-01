@@ -3,7 +3,8 @@
 #include <fstream>
 #include <vector>
 
-#include "mlp/Batch.hpp"
+#include "data/Batch.hpp"
+#include "data/Sample.hpp"
 
 /*
 
@@ -27,6 +28,9 @@ namespace mlp {
         Dataset(const std::string& file_path);
 
         size_t parseBatch(Batch& batch, const int start_line = NO_LINE);
+        size_t getSize() { return m_totalLines; }
+
+        void resetLine() { m_currentLine = 0; }
 
         private:
 

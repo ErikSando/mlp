@@ -9,13 +9,15 @@ namespace mlp {
 
         m_context.computeGradients(last_hidden_layer.nodes, output_layer.nodes, last_hidden_layer.nodes.columns(), batch.labels, output_layer.activation, Loss::CCE, gradients); // loss set to CCE for now
 
-        float* host_gradients = new float[gradients.size()];
-        m_context.transfer(gradients, host_gradients);
+        m_context.optimiseLayer(output_layer.weights, gradients, m_learningRate);
 
-        for (size_t i = 0; i < gradients.size(); i++) {
-            std::cout << "  " << host_gradients[i];
-        }
+        // float* host_gradients = new float[gradients.size()];
+        // m_context.transfer(gradients, host_gradients);
 
-        std::cout << "\n";
+        // for (size_t i = 0; i < gradients.size(); i++) {
+        //     std::cout << "  " << host_gradients[i];
+        // }
+
+        // std::cout << "\n";
     }
 }

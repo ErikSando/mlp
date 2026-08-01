@@ -111,6 +111,10 @@ namespace mlp {
             Matrix& gradients
         ) const; // hidden layers
 
+        void optimiseLayer(Matrix& weights, const Matrix& gradients, const float learning_rate) const;
+
+        void checkOutputs(const Matrix& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix& correct, Matrix& classifications);
+
         inline void synchronise() const {
             cudaError_t err = cudaDeviceSynchronize();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");

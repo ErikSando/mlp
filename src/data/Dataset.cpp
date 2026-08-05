@@ -57,6 +57,9 @@ namespace mlp {
         m_file.read(buffer, size);
     }
 
+    // I want to clarify: I removed the first row of the MNIST data (column labels) to make this more simple
+    // But I will probably make this class a little more flexible later so I can leave in the columns
+
     size_t Dataset::parseBatch(Batch& batch, const int start_line) {
         if (start_line != NO_LINE) m_currentLine = static_cast<size_t>(start_line);
 

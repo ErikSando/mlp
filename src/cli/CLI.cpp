@@ -19,32 +19,36 @@ namespace mlp {
     }
 
     void CommandLoop() {
-        mlp::Dataset train_dataset("res/mnist/mnist_train.csv");
-        mlp::Dataset test_dataset("res/mnist/mnist_test.csv");
+        // mlp::Dataset train_dataset("res/mnist/mnist_train.csv");
+        // mlp::Dataset test_dataset("res/mnist/mnist_test.csv");
+
+        // mlp::Dataset dataset("res/testing/test_data.csv");
+        mlp::Dataset dataset("res/testing/test_data_2.csv");
 
         mlp::CUDAProfiler cuda_profiler;
         mlp::Profiler profiler;
 
         mlp::DeviceContext context(&cuda_profiler);
 
-        constexpr size_t BATCH_SIZE = 32;
+        constexpr size_t BATCH_SIZE = 1;
 
-        std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
+        // std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
+        std::vector<size_t> layer_sizes = { 4, 4, 4 };
 
-        // mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
+        mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
         // train_dataset.parseBatch(batch);
+        dataset.parseBatch(batch);
 
         mlp::MLP model(context, BATCH_SIZE);
         model.init(layer_sizes);
 
         // for (int i = 0; i < 1000; i++) {
-        //     mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
-        //     train_dataset.parseBatch(batch);
-        //     model.forwardPass(batch);
-        //     model.backwardPass(batch);
+            // train_dataset.parseBatch(batch);
+            model.forwardPass(batch);
+            model.backwardPass(batch);
         // }
 
-        Test(model, test_dataset);
+        // Test(model, dataset);
 
         std::string command;
 

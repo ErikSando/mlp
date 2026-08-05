@@ -11,7 +11,7 @@ namespace mlp {
 
         void propagate(const DeviceContext& context, const Matrix& previous_layer);
 
-        Matrix nodes;
+        Matrix nodes; // in the future, seperate activations and logits
         Matrix weights;
         Matrix biases;
 

@@ -97,18 +97,18 @@ namespace mlp {
             Use a kernel to compute the gradients for a layer, using the previous layers' result for the next (starting at the output layer)
         */
 
-        void computeGradients(
-            const Matrix& last_activations, const Matrix& activations,
+        void computeOutputGradients(
+            const Matrix& last_activations, const Matrix& activations, const Matrix& weights,
             const size_t n_last_activations,
             const std::vector<int>& labels,
             const Activation activation, const Loss loss,
-            Matrix& gradients
+            Matrix& gradients, Matrix& dC_da
         ) const; // output layer
 
         void computeGradients(
             const Matrix& last_gradients, const Matrix& activations,
             const Activation activation, const Loss loss,
-            Matrix& gradients
+            Matrix& gradients, Matrix& dC_da
         ) const; // hidden layers
 
         void optimiseLayer(Matrix& weights, const Matrix& gradients, const float learning_rate) const;

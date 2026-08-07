@@ -10,7 +10,8 @@
 namespace mlp {
     template<typename TActivation = NoActivation>
     __global__ void propagate_kernel_tiled(
-        const float* input, float* output, const float* weights, const float* biases,
+        const float* input, float* logits, float* activations,
+        const float* weights, const float* biases,
         const size_t batch_size, const size_t input_count, const size_t output_count
     ) {
         unsigned int tid = threadIdx.x;
@@ -29,7 +30,8 @@ namespace mlp {
 
         input += cache_row * TILE_SIZE * input_count;
         weights += cache_col * TILE_SIZE;
-        output += cache_row * TILE_SIZE * output_count + cache_col * TILE_SIZE;
+        logits += cache_row * TILE_SIZE * output_count + cache_col * TILE_SIZE;
+        activations += cache_row * TILE_SIZE * output_count + cache_col * TILE_SIZE;
 
         float temp = biases[col];
 
@@ -53,13 +55,16 @@ namespace mlp {
         }
 
         if (row < batch_size && col < output_count) {
-            output[thread_row * output_count + thread_col] = TActivation::activate(temp);
+            logits[thread_row * output_count + thread_col] = temp;
+            activations[thread_row * output_count + thread_col] = TActivation::activate(temp);
         }
     }
 
     template<typename TActivation = NoActivation>
     __global__ void propagate_kernel(
-        const float* input, float* output, const float* weights, const float* biases,
+        const float* input,
+        float* logits, float* activations,
+        const float* weights, const float* biases,
         const size_t batch_size, const size_t input_count, const size_t output_count
     ) {
         unsigned int row = blockDim.y * blockIdx.y + threadIdx.y;
@@ -73,13 +78,17 @@ namespace mlp {
             value += input[row * input_count + k] * weights[k * output_count + col];
         }
 
-        output[row * output_count + col] = TActivation::activate(value);
+        logits[row * output_count + col] = value;
+        activations[row * output_count + col] = TActivation::activate(value);
     }
 
-    void DeviceContext::propagate(const Matrix& input, Matrix& output, const Matrix& weights, const Matrix& biases, const Activation activation) const {
+    void DeviceContext::propagate(
+        const Matrix& input, Matrix& logits, Matrix& activations, const Matrix& weights, const Matrix& biases, const Activation activation
+    ) const {
         assert(input.columns() == weights.rows());
-        assert(output.rows() == input.rows());
-        assert(output.columns() == weights.columns());
+        assert(activations.rows() == input.rows());
+        assert(activations.columns() == weights.columns());
+        assert(activations.size() == logits.size());
 
         cudaError_t err;
 
@@ -96,28 +105,29 @@ namespace mlp {
 
         switch (activation) {
             case Activation::SIGMOID:
-                propagate_kernel_tiled<Sigmoid><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<Sigmoid><<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
             break;
 
             case Activation::TANH:
-                propagate_kernel_tiled<Tanh><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<Tanh><<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
             break;
 
             case Activation::RELU:
-                propagate_kernel_tiled<ReLU><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<ReLU><<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
             break;
 
             case Activation::LEAKY_RELU:
-                propagate_kernel_tiled<LeakyReLU><<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<LeakyReLU><<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
             break;
 
             case Activation::SOFTMAX:
-                propagate_kernel_tiled<<<grid, block>>>(input.data(), output.data(), weights.data(), biases.data(), input.rows(), input.columns(), output.columns());
+                propagate_kernel_tiled<<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
 
                 CUDATaskID sm_task;
                 if (m_profiler) sm_task = m_profiler->startTask("Softmax"); // this is like a sub task, it overlaps with layer propagation, but i havent accounted for this in the profiler
 
-                softmax_kernel<<<input.rows(), BLOCK_SIZE>>>(output.data(), output.data(), output.rows(), output.columns());
+                // logits = activations here, but I am using logits as inputs and activations as outputs because it makes sense
+                softmax_kernel<<<input.rows(), BLOCK_SIZE>>>(logits.data(), activations.data(), logits.rows(), logits.columns());
 
                 if (m_profiler) m_profiler->endTask(sm_task);
             break;

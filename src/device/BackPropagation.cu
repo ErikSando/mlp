@@ -18,9 +18,52 @@ namespace mlp {
         dC/dw = dC/da da/dw
         So basically split the derivate into the influence of w on a, then influence of a on C
         I think da/dw will be computed earlier and will account for all the next layers too
+
+        Using cross categorial entropy loss function, softmax output activation function, and leaky ReLU hidden layer activation function
+
+        for the output layer (l = L):
+
+        y = 1 if this is the correct output class, otherwise 0
+        w_l = a weight connecting a node from layer l-1 to layer l
+
+        dC/da_L = -1/a_L
+        da_L/dz_L = a_L(y - a_L)
+        dz_L/dw_L = a_L-1  (the weight connecting a_L-1 and a_L)
+
+        dC/dw_L = dC/da_L da_L/dz_L dz_L/dw_L
+              = -1/a_L a_L(y - a_L) a_L-1
+              = -a_L-1(y - a_L)
+              = a_L-1(a_L - y)
+
+        dC/dz_L = dC/da_L da_L/dz_L   (we need this for the next layer's gradient computation)
+              = -1/a_L a_L(y - a_L)
+              = a_L - y
+
+        for the last hidden layer:
+
+        z_L = Σ w_L a_L-1           the sum of the products of the preceding layer's activations and the weights connecting those nodes into the current layer's nodes
+        dz_L/da_L-1 = w_L           the derivative of a logit in the current layer based on any activation in the previous layer
+
+        da_L-1/dz_L-1 = { 1      if z_L-1 >= 0
+                        { 0.01   if z_L-1 < 0
+
+        dC/dz_L-1 = Σ(dC/dz_L dz_L/da_L-1) da_L-1/dz_L-1
+
+        and then repeat the above procedure into every next layer to find the gradients of each weight in the network
+
+        z_L-1 = Σ w_L-1 a_L-2
+        dz_L-1/da_L-2 = w_L-1
+
+        da_L-2/dz_L-2 = { 1      if z_L-2 >= 0
+                        { 0.01   if z_L-2 < 0
+
+        dC/dz_L-2 = Σ(dC/dz_L-1 dz_L-1/da_L-2) da_L-2/dz_L-2      we will have these pre computed, but it expands to:
+                  = Σ(Σ(dC/dz_L dz_L/da_L-1) da_L-1/dz_L-1 dz_L-1/da_L-2) da_L-2/dz_L-2
+                  = Σ(Σ(dC/da_L da_L/dz_L dz_L/da_L-1) da_L-1/dz_L-1 dz_L-1/da_L-2) da_L-2/dz_L-2
+
     */
 
-    template<typename TActivation, typename TLoss>
+    template<typename TActivation>
     __global__ void compute_gradients_kernel(
         const float* last_gradients, const float* activations, // last_gradients is dC/da for the nodes in the next layer (left to right), "last" in the sense that we are moving backwards through the layers
         const size_t n_last_gradients, const size_t n_activations, const size_t batch_size,
@@ -92,7 +135,7 @@ namespace mlp {
 
     void DeviceContext::computeGradients(
         const Matrix& last_gradients, const Matrix& activations, 
-        const Activation activation, const Loss loss,
+        const Activation activation,
         Matrix& gradients, Matrix& dC_da_hidden
     ) const {
         assert(last_gradients.rows() == activations.rows());
@@ -107,7 +150,7 @@ namespace mlp {
             block_count(activations.rows(), block.z)
         );
 
-        compute_gradients_kernel<LeakyReLU, CCE><<<grid, block>>>(
+        compute_gradients_kernel<LeakyReLU><<<grid, block>>>(
             last_gradients.data(), activations.data(),
             last_gradients.columns(), activations.columns(), activations.rows(),
             gradients.data(), dC_da_hidden.data()

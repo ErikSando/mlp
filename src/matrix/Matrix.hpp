@@ -17,9 +17,9 @@ namespace mlp {
 
         float* data() const { return m_data; } // device memory address of the matrix values
 
-        size_t size() const { return m_size; }
-        size_t rows() const { return m_rows; }
-        size_t columns() const { return m_cols; }
+        constexpr size_t size() const { return m_size; }
+        constexpr size_t rows() const { return m_rows; }
+        constexpr size_t columns() const { return m_cols; }
 
         private:
 

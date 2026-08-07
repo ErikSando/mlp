@@ -85,7 +85,12 @@ namespace mlp {
             biases: biases matrix (really a vector)
             activation: activation function type
         */
-        void propagate(const Matrix& last_activations, Matrix& activations, const Matrix& weights, const Matrix& biases, const Activation activation) const;
+        void propagate(
+            const Matrix& last_activations,
+            Matrix& logits, Matrix& activations,
+            const Matrix& weights, const Matrix& biases,
+            const Activation activation
+        ) const;
 
         void computeLoss(const Matrix& output, const Matrix& target, Matrix& result, const Loss loss) const;
 
@@ -107,7 +112,7 @@ namespace mlp {
 
         void computeGradients(
             const Matrix& last_gradients, const Matrix& activations,
-            const Activation activation, const Loss loss,
+            const Activation activation,
             Matrix& gradients, Matrix& dC_da
         ) const; // hidden layers
 

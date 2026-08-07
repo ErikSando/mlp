@@ -38,7 +38,7 @@ namespace mlp {
         // Check the number of correct classifications out of the given number of samples
         void checkOutputs(const std::vector<int>& labels, const size_t n_samples, Matrix& correct, Matrix& classifications);
 
-        constexpr size_t getInputCount() { return m_layers[0].nodes.columns(); }
+        size_t getInputCount() { return m_layers[0].logits.columns(); }
         constexpr size_t getBatchSize() { return m_batchSize; }
 
         private:

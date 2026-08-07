@@ -2,40 +2,40 @@
 
 namespace mlp {
     struct NoActivation {
-        __device__ static float activate(float x) {
-            return x;
+        __device__ static float activate(float z) {
+            return z;
         }
     };
 
     struct Sigmoid {
-        __device__ static float activate(float x) {
-            return 1.0f / (1.0f + expf(-x));
+        __device__ static float activate(float z) {
+            return 1.0f / (1.0f + expf(-z));
         }
     };
 
     struct Tanh {
-        __device__ static float activate(float x) {
-            return tanhf(x);
+        __device__ static float activate(float z) {
+            return tanhf(z);
         }
     };
 
     struct ReLU {
-        __device__ static float activate(float x) {
-            return fmaxf(0.0f, x);
+        __device__ static float activate(float z) {
+            return fmaxf(0.0f, z);
         }
 
-        __device__ static float derivative(float x) {
-            return x >= 0.0f ? 1.0f : 0.0f;
+        __device__ static float derivative(float z) {
+            return z >= 0.0f ? 1.0f : 0.0f;
         }
     };
 
     struct LeakyReLU {
-        __device__ static float activate(float x) {
-            return x >= 0.0f ? x : 0.01f * x;
+        __device__ static float activate(float z) {
+            return z >= 0.0f ? z : 0.01f * z;
         }
 
-        __device__ static float derivative(float x) {
-            return x >= 0.0f ? 1.0f : 0.01f;
+        __device__ static float derivative(float z) {
+            return z >= 0.0f ? 1.0f : 0.01f;
         }
     };
 }

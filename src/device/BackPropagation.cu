@@ -35,93 +35,123 @@ namespace mlp {
               = -a_L-1(y - a_L)
               = a_L-1(a_L - y)
 
-        dC/dz_L = dC/da_L da_L/dz_L   (we need this for the next layer's gradient computation)
+        dC/dz_L = dC/da_L da_L/dz_L
               = -1/a_L a_L(y - a_L)
               = a_L - y
 
-        for the last hidden layer:
+        z_L = Σ(w_L a_L-1)
 
-        z_L = Σ w_L a_L-1           the sum of the products of the preceding layer's activations and the weights connecting those nodes into the current layer's nodes
-        dz_L/da_L-1 = w_L           the derivative of a logit in the current layer based on any activation in the previous layer
+        dz_L/da_L-1 = w_L     (summed for every weight connecting nodes between the two layers)
+
+        dC/da_L-1 = dC/dz_L dz_L/da_L-1       (we need this for the next layer's gradient computation)
+                  = w_L(a_L - y)
+
+        for the last hidden layer:
 
         da_L-1/dz_L-1 = { 1      if z_L-1 >= 0
                         { 0.01   if z_L-1 < 0
 
-        dC/dz_L-1 = Σ(dC/dz_L dz_L/da_L-1) da_L-1/dz_L-1
+        dz_L-1/dw_L-1 = a_L-2
 
-        and then repeat the above procedure into every next layer to find the gradients of each weight in the network
+        dC/dz_L-1 = dC/da_L-1 da_L-1/dz_L-1
 
-        z_L-1 = Σ w_L-1 a_L-2
+        dC/dw_L-1 = dC/dz_L-1 dz_L-1/dw_L-1
+                  = a_L-2 dC/da_L-1 da_L-1/dz_L-1
+
         dz_L-1/da_L-2 = w_L-1
 
-        da_L-2/dz_L-2 = { 1      if z_L-2 >= 0
-                        { 0.01   if z_L-2 < 0
+        dC/da_L-2 = dC/dz_L-1 dz_L-1/da_L-2
+                  = w_L-1 Σ(dC/dz_L-1)
 
-        dC/dz_L-2 = Σ(dC/dz_L-1 dz_L-1/da_L-2) da_L-2/dz_L-2      we will have these pre computed, but it expands to:
-                  = Σ(Σ(dC/dz_L dz_L/da_L-1) da_L-1/dz_L-1 dz_L-1/da_L-2) da_L-2/dz_L-2
-                  = Σ(Σ(dC/da_L da_L/dz_L dz_L/da_L-1) da_L-1/dz_L-1 dz_L-1/da_L-2) da_L-2/dz_L-2
+        and repeat through, in general it looks something like:
+
+        for every layer l, we will have dC/da_l pre computed
+
+        da_l/dz_l = { 1      if z_L-1 >= 0
+                    { 0.01   if z_L-1 < 0
+
+        dz_l/dw_l = a_l-1
+
+        dC/dz_l = dC/da_l da_l/dz_l
+        dC/dw_l = dC/da_l da_l/dz_l dz_l/dw_l
+                = a_l-1 dC/da_l da_l/dz_l
+
+        dz_l/da_l-1 = w_l    for every pair of nodes in layers l-1 and l
+
+        dC/da_l-1 = dC/dz_l dz_l/da_l-1
 
     */
 
     template<typename TActivation>
-    __global__ void compute_gradients_kernel(
-        const float* last_gradients, const float* activations, // last_gradients is dC/da for the nodes in the next layer (left to right), "last" in the sense that we are moving backwards through the layers
-        const size_t n_last_gradients, const size_t n_activations, const size_t batch_size,
-        float* gradients, float* dC_da
+    __global__ void compute_hidden_gradients_kernel(
+        const float* dC_da_gradients,
+        const float* a_left, const float* a_right,
+        const float* weights,
+        const size_t n_left, const size_t n_right, const size_t batch_size,
+        float* gradients, float* dC_da_next
     ) {
-        unsigned int last_gradient_index = blockIdx.x * blockDim.x + threadIdx.x;
-        unsigned int activation_index = blockIdx.y * blockDim.y + threadIdx.y;
+        unsigned int left_index = blockIdx.x * blockDim.x + threadIdx.x;
+        unsigned int right_index = blockIdx.y * blockDim.y + threadIdx.y;
         unsigned int batch = blockIdx.z * blockDim.z + threadIdx.z;
 
-        if (last_gradient_index >= n_last_gradients || activation_index >= n_activations || batch >= batch_size) return;
+        if (left_index >= n_left || right_index >= n_right || batch >= batch_size) return;
 
-        if (last_gradients[last_gradient_index] == 0) return; // I don't think this will ever be true, every node in the next layer connects to the correct output node
+        unsigned int weight_index = left_index * n_right + right_index;
 
-        unsigned int weight_index = activation_index * n_activations + last_gradient_index;
+        // we are looking at the layer on the right by default, so if there is no suffix it means the right side
 
-        // I wrote this code hella sleepy i don't know what's going on please fix it
+        float a = a_right[batch * n_right + right_index];
 
-        float da_dz = TActivation::derivative(activations[activation_index]);
-        float dz_dw = activations[activation_index];
-        float da_dw = da_dz * dz_dw;
-        float dC_dw = da_dw * last_gradients[last_gradient_index];// / (float) batch_size;
+        float al = a_left[batch * n_left + left_index]; // preceding layer activation
 
-        gradients[weight_index] = dC_dw;
+        float da_dz = TActivation::derivative(a); // works for leaky relu, switch to using z later, need to add logits into the kernel launch
+        float dz_dw = al;
+        float dC_da = dC_da_gradients[batch * n_right + right_index];
+
+        float dC_dz = dC_da * da_dz;
+        float dC_dw = dC_dz * dz_dw;
+
+        float dz_da_left = weights[weight_index];
+        float dC_da_left = dC_dz * dz_da_left;
+
+        // need some reduction method for these, fix it later:
+
+        atomicAdd(&dC_da_next[batch * n_left + left_index], dC_da_left);
+        atomicAdd(&gradients[weight_index], dC_dw);
     }
 
     template<typename TActivation, typename TLoss>
     __global__ void compute_output_gradients_kernel(
-        const float* last_hidden_activations, const float* activations,
+        const float* a_hidden_list, const float* a_output_list,
         const float* weights,
-        const size_t n_activations, const size_t n_last_activations, const size_t batch_size,
-        const int* labels, float* gradients, float* dC_da_hidden
+        const size_t n_output, const size_t n_hidden, const size_t batch_size,
+        const int* labels, float* gradients, float* dC_da_hidden_list
     ) {
-        unsigned int last_activation_index = blockIdx.x * blockDim.x + threadIdx.x;
-        unsigned int activation_index = blockIdx.y * blockDim.y + threadIdx.y;
+        unsigned int hidden_index = blockIdx.x * blockDim.x + threadIdx.x;
+        unsigned int output_index = blockIdx.y * blockDim.y + threadIdx.y;
         unsigned int batch = blockIdx.z * blockDim.z + threadIdx.z;
 
-        if (last_activation_index >= n_last_activations || activation_index >= n_activations || batch >= batch_size) return;
+        if (hidden_index >= n_hidden || output_index >= n_output || batch >= batch_size) return;
 
-        unsigned int weight_index = last_activation_index * n_activations + activation_index;
+        unsigned int weight_index = hidden_index * n_output + output_index;
 
-        float a_L = activations[batch * n_activations + activation_index];
-        float a_Lminus1 = last_hidden_activations[batch * n_last_activations + last_activation_index];
+        float a_output = a_output_list[batch * n_output + output_index];
+        float a_hidden = a_hidden_list[batch * n_hidden + hidden_index];
 
         float y = 0.0f;
-        if (activation_index == labels[batch]) y = 1.0f;
+        if (output_index == labels[batch]) y = 1.0f;
 
-        float output_delta = a_L - y;
+        float dC_dz_output = a_output - y; // dC/dz_L = a_L - y
+        float dC_dw_output = a_hidden * dC_dz_output; // dC/dw_L = a_L-1 (a_L - y)    where w_L connects a_L-1 and a_L
+
+        float dz_output_da_hidden = weights[weight_index]; // dz_L/da_L-1 = w_L
+
+        float dC_da_hidden = dC_dz_output * dz_output_da_hidden; // dC/da_L-1 = Σ(dC/dz_L dz_L/da_L-1)   we don't have to worry about summing here, we do that later
 
         // need some reduction method for these, fix it later:
 
-        // i think dC_dz is usually used not dC_da, ill maybe change it later
-        // i need z_Lminus1 for the activation derivative, works using a_Lminus1 for all the actiation functions i have, but probably is bad practice
-        // dC_da_hidden[batch * n_last_activations + last_activation_index] += TActivation::derivative(a_Lminus1) * output_delta * weights[weight_index];
-        atomicAdd(&dC_da_hidden[batch * n_last_activations + last_activation_index], TActivation::derivative(a_Lminus1) * output_delta * weights[weight_index]);
-
-        // dC/dw = a_l-1 (a_l - y)
-        // gradients[weight_index] += a_Lminus1 * output_delta;
-        atomicAdd(&gradients[weight_index], a_Lminus1 * output_delta);
+        atomicAdd(&dC_da_hidden_list[batch * n_hidden + hidden_index], dC_da_hidden);
+        atomicAdd(&gradients[weight_index], dC_dw_output);
     }
 
     __global__ void optimise_layer_kernel(float* weights, const float* gradients, const size_t n_weights, const float learning_rate) {
@@ -134,26 +164,32 @@ namespace mlp {
     }
 
     void DeviceContext::computeGradients(
-        const Matrix& last_gradients, const Matrix& activations, 
+        const Matrix& dC_da,
+        const Matrix& left_activations, const Matrix& right_activations,
+        const Matrix& weights,
         const Activation activation,
-        Matrix& gradients, Matrix& dC_da_hidden
+        Matrix& gradients, Matrix& dC_da_next
     ) const {
-        assert(last_gradients.rows() == activations.rows());
+        assert(left_activations.rows() == right_activations.rows());
+        assert(dC_da.rows() == right_activations.rows());
+        assert(dC_da.columns() == right_activations.columns());
 
         cudaError_t err;
 
         dim3 block(8, 8, 8);
 
         dim3 grid(
-            block_count(last_gradients.columns(), block.x),
-            block_count(activations.columns(), block.y),
-            block_count(activations.rows(), block.z)
+            block_count(left_activations.columns(), block.x),
+            block_count(right_activations.columns(), block.y),
+            block_count(right_activations.rows(), block.z)
         );
 
-        compute_gradients_kernel<LeakyReLU><<<grid, block>>>(
-            last_gradients.data(), activations.data(),
-            last_gradients.columns(), activations.columns(), activations.rows(),
-            gradients.data(), dC_da_hidden.data()
+        compute_hidden_gradients_kernel<LeakyReLU><<<grid, block>>>(
+            dC_da.data(),
+            left_activations.data(), right_activations.data(),
+            weights.data(),
+            left_activations.columns(), right_activations.columns(), right_activations.rows(),
+            gradients.data(), dC_da_next.data()
         );
 
         err = cudaGetLastError();
@@ -161,7 +197,7 @@ namespace mlp {
     }
 
     void DeviceContext::computeOutputGradients(
-        const Matrix& last_activations, const Matrix& activations, const Matrix& weights,
+        const Matrix& last_hidden_activations, const Matrix& output_activations, const Matrix& weights,
         const size_t n_last_activations,
         const std::vector<int>& labels,
         const Activation activation, const Loss loss,
@@ -173,13 +209,13 @@ namespace mlp {
 
         dim3 grid(
             block_count(n_last_activations, block.x),
-            block_count(activations.columns(), block.y),
-            block_count(activations.rows(), block.z)
+            block_count(output_activations.columns(), block.y),
+            block_count(output_activations.rows(), block.z)
         );
 
         compute_output_gradients_kernel<LeakyReLU, CCE><<<grid, block>>>(
-            last_activations.data(), activations.data(), weights.data(),
-            activations.columns(), n_last_activations, activations.rows(),
+            last_hidden_activations.data(), output_activations.data(), weights.data(),
+            output_activations.columns(), n_last_activations, output_activations.rows(),
             labels.data(),
             gradients.data(), dC_da_hidden.data()
         );

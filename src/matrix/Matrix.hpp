@@ -6,7 +6,7 @@ namespace mlp {
     class Matrix {
         public:
 
-        Matrix(size_t rows, size_t columns);
+        Matrix(const size_t rows, const size_t columns);
         ~Matrix();
 
         Matrix(const Matrix&) = delete;
@@ -14,6 +14,8 @@ namespace mlp {
 
         Matrix(Matrix&& other) noexcept;
         Matrix& operator=(Matrix&& other) noexcept;
+
+        void resize(const size_t rows, const size_t columns);
 
         float* data() const { return m_data; } // device memory address of the matrix values
 

@@ -5,71 +5,101 @@ namespace mlp {
         Layer& output_layer = m_layers.back();
         Layer& last_hidden_layer = m_layers.at(m_layers.size() - 2);
 
-        Matrix gradients(output_layer.weights.rows(), output_layer.weights.columns());
-        Matrix dC_da(m_batchSize, last_hidden_layer.activations.columns());
+        std::vector<Matrix> gradients; // ordered backwards
+        std::vector<Matrix> dC_da;
+
+        gradients.emplace_back(output_layer.weights.rows(), output_layer.weights.columns());
+        dC_da.emplace_back(m_batchSize, last_hidden_layer.activations.columns());
+
+        // Matrix gradients(output_layer.weights.rows(), output_layer.weights.columns());
+        // Matrix dC_da(m_batchSize, last_hidden_layer.activations.columns());
 
         m_context.computeOutputGradients(
             last_hidden_layer.activations, output_layer.activations, output_layer.weights,
             last_hidden_layer.activations.columns(),
             batch.labels,
             output_layer.activation, Loss::CCE,
-            gradients, dC_da
+            gradients.front(), dC_da.front()
         ); // loss set to CCE for now
 
-        // m_context.optimiseLayer(output_layer.weights, gradients, m_learningRate);
+        for (size_t l = m_layers.size() - 2; l > 0; l--) {
+            Layer& layer = m_layers[l];
+            Layer& preceding_layer = m_layers[l - 1];
 
-        for (size_t layer = m_layers.size() - 2; layer > 0; layer--) {
-            
+            gradients.emplace_back(layer.weights.rows(), layer.weights.columns());
+            dC_da.emplace_back(m_batchSize, preceding_layer.activations.columns());
+
+            m_context.computeGradients(dC_da[dC_da.size() - 2], preceding_layer.activations, layer.activations, layer.weights, layer.activation, gradients.back(), dC_da.back());
         }
 
-        float* host_gradients = new float[gradients.size()];
-        m_context.transfer(gradients, host_gradients);
+        for (int i = gradients.size() - 1; i >= 0; i--) {
+            std::cout << "Gradients:\n";
 
-        for (size_t i = 0; i < gradients.size(); i++) {
-            std::cout << "  " << host_gradients[i];
+            Matrix& grads = gradients[i];
+
+            float* host_gradients = new float[grads.size()];
+
+            m_context.transfer(grads, host_gradients);
+
+            for (size_t j = 0; j < grads.size(); j++) {
+                std::cout << "  " << host_gradients[j];
+            }
+
+            delete[] host_gradients;
+
+            std::cout << "\n\n";
         }
 
-        delete[] host_gradients;
+        // Matrix& output_gradients = gradients.front();
 
-        std::cout << "\n";
+        // float* host_gradients = new float[gradients.size()];
+        // m_context.transfer(output_gradients, host_gradients);
 
-        float* h_dC_da = new float[dC_da.size()];
-        m_context.transfer(dC_da, h_dC_da);
+        // for (size_t i = 0; i < gradients.size(); i++) {
+        //     std::cout << "  " << host_gradients[i];
+        // }
 
-        for (size_t i = 0; i < dC_da.size(); i++) {
-            std::cout << "  " << h_dC_da[i];
-        }
+        // delete[] host_gradients;
 
-        delete[] h_dC_da;
+        // std::cout << "\n";
 
-        std::cout << "\n";
+        // float* h_dC_da = new float[dC_da.size()];
+        // m_context.transfer(dC_da, h_dC_da);
 
-        Matrix hidden_gradients(last_hidden_layer.weights.rows(), last_hidden_layer.weights.columns());
-        Matrix next_dC_da(m_batchSize, m_layers.at(m_layers.size() - 3).activations.columns());
+        // for (size_t i = 0; i < dC_da.size(); i++) {
+        //     std::cout << "  " << h_dC_da[i];
+        // }
 
-        m_context.computeGradients(dC_da, last_hidden_layer.activations, last_hidden_layer.activation, hidden_gradients, next_dC_da);
+        // delete[] h_dC_da;
 
-        float* host_gradients_2 = new float[hidden_gradients.size()];
-        m_context.transfer(hidden_gradients, host_gradients_2);
+        // std::cout << "\n";
 
-        for (size_t i = 0; i < hidden_gradients.size(); i++) {
-            std::cout << "  " << host_gradients_2[i];
-        }
+        // Matrix hidden_gradients(last_hidden_layer.weights.rows(), last_hidden_layer.weights.columns());
+        // Matrix next_dC_da(m_batchSize, m_layers.at(m_layers.size() - 3).activations.columns());
 
-        delete[] host_gradients_2;
+        // m_context.computeGradients(dC_da, last_hidden_layer.activations, last_hidden_layer.activation, hidden_gradients, next_dC_da);
 
-        std::cout << "\n";
+        // float* host_gradients_2 = new float[hidden_gradients.size()];
+        // m_context.transfer(hidden_gradients, host_gradients_2);
 
-        float* h_dC_da_2 = new float[next_dC_da.size()];
-        m_context.transfer(next_dC_da, h_dC_da_2);
+        // for (size_t i = 0; i < hidden_gradients.size(); i++) {
+        //     std::cout << "  " << host_gradients_2[i];
+        // }
 
-        for (size_t i = 0; i < next_dC_da.size(); i++) {
-            std::cout << "  " << h_dC_da_2[i];
-        }
+        // delete[] host_gradients_2;
 
-        delete[] h_dC_da_2;
+        // std::cout << "\n";
 
-        std::cout << "\n";
+        // float* h_dC_da_2 = new float[next_dC_da.size()];
+        // m_context.transfer(next_dC_da, h_dC_da_2);
+
+        // for (size_t i = 0; i < next_dC_da.size(); i++) {
+        //     std::cout << "  " << h_dC_da_2[i];
+        // }
+
+        // delete[] h_dC_da_2;
+
+        // std::cout << "\n";
 
         // for (size_t layer = m_layers.size() - 2; layer > 0; layer--) {
         //     Layer& hidden_layer = m_layers[layer];

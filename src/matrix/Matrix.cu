@@ -5,7 +5,7 @@
 #include "matrix/Matrix.hpp"
 
 namespace mlp {
-    Matrix::Matrix(size_t rows, size_t columns) : m_rows(rows), m_cols(columns), m_size(rows * columns) {
+    Matrix::Matrix(const size_t rows, const size_t columns) : m_rows(rows), m_cols(columns), m_size(rows * columns) {
         cudaError_t err = cudaMalloc((void**) &m_data, rows * columns * sizeof(float));
         if (err != cudaSuccess) throw std::runtime_error(cudaGetErrorString(err));
     }
@@ -33,6 +33,16 @@ namespace mlp {
         }
 
         return *this;
+    }
+
+    void Matrix::resize(const size_t rows, const size_t columns) {
+        cudaFree(m_data);
+
+        cudaError_t err = cudaMalloc((void**) &m_data, rows * columns * sizeof(float));
+        if (err != cudaSuccess) throw std::runtime_error(cudaGetErrorString(err));
+
+        m_rows = rows;
+        m_cols = columns;
     }
 
     DeviceInt::DeviceInt(const int value) {

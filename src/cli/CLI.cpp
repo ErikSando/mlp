@@ -30,7 +30,7 @@ namespace mlp {
 
         mlp::DeviceContext context(&cuda_profiler);
 
-        constexpr size_t BATCH_SIZE = 1;
+        constexpr size_t BATCH_SIZE = 4;
 
         // std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
         std::vector<size_t> layer_sizes = { 4, 4, 4 };

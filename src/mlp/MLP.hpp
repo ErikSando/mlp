@@ -1,7 +1,7 @@
 #pragma once
 
 #include "data/Batch.hpp"
-#include "device/DeviceContext.hpp"
+#include "enums/Enums.hpp"
 #include "mlp/Layer.hpp"
 
 // things are very experimental right now

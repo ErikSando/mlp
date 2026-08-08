@@ -4,10 +4,12 @@
 #include <vector>
 
 #include "cli/CLI.hpp"
+#include "cuda/Context.hpp"
+#include "cuda/profiling/Profiler.hpp"
 #include "data/Dataset.hpp"
-#include "device/CUDAContext.hpp"
+#include "host/Context.hpp"
+#include "host/profiling/Profiler.hpp"
 #include "mlp/MLP.hpp"
-#include "profiling/HostProfiler.hpp"
 
 namespace mlp {
     std::string to_lower(std::string str) {
@@ -25,10 +27,10 @@ namespace mlp {
         // mlp::Dataset dataset("res/testing/test_data.csv");
         mlp::Dataset dataset("res/testing/test_data_2.csv");
 
-        mlp::CUDAProfiler cuda_profiler;
-        mlp::HostProfiler host_profiler;
+        mlp::cuda::Profiler cuda_profiler;
+        mlp::host::Profiler host_profiler;
 
-        mlp::CUDAContext context(&cuda_profiler);
+        mlp::cuda::Context context(&cuda_profiler);
 
         constexpr size_t BATCH_SIZE = 1;
 
@@ -39,7 +41,7 @@ namespace mlp {
         // train_dataset.parseBatch(batch);
         dataset.parseBatch(batch);
 
-        mlp::MLP<CUDAContext> model(context, BATCH_SIZE);
+        mlp::MLP<cuda::Context> model(context, BATCH_SIZE);
         model.init(layer_sizes);
 
         for (int i = 0; i < 10; i++) {

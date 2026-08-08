@@ -4,7 +4,7 @@
 #include <cuda_runtime.h>
 
 #include "device/Activation.cuh"
-#include "device/DeviceContext.hpp"
+#include "device/CUDAContext.hpp"
 
 namespace mlp {
     // struct NoActivation {
@@ -77,7 +77,7 @@ namespace mlp {
         output[index] = LeakyReLU::activate(input[index]);
     }
 
-    void DeviceContext::sigmoid(const Matrix& input, Matrix& output) const {
+    void CUDAContext::sigmoid(const CUDAMatrix& input, CUDAMatrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());
@@ -92,7 +92,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA sigmoid error: ");
     }
 
-    void DeviceContext::tanh(const Matrix& input, Matrix& output) const {
+    void CUDAContext::tanh(const CUDAMatrix& input, CUDAMatrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());
@@ -107,7 +107,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA tanh error: ");
     }
 
-    void DeviceContext::relu(const Matrix& input, Matrix& output) const {
+    void CUDAContext::relu(const CUDAMatrix& input, CUDAMatrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());
@@ -122,7 +122,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA ReLU error: ");
     }
 
-    void DeviceContext::leakyReLU(const Matrix& input, Matrix& output) const {
+    void CUDAContext::leakyReLU(const CUDAMatrix& input, CUDAMatrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());

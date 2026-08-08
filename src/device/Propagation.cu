@@ -5,7 +5,7 @@
 
 #include "device/Activation.cuh"
 #include "device/Softmax.cuh"
-#include "device/DeviceContext.hpp"
+#include "device/CUDAContext.hpp"
 
 namespace mlp {
     template<typename TActivation = NoActivation>
@@ -82,8 +82,8 @@ namespace mlp {
         activations[row * output_count + col] = TActivation::activate(value);
     }
 
-    void DeviceContext::propagate(
-        const Matrix& input, Matrix& logits, Matrix& activations, const Matrix& weights, const Matrix& biases, const Activation activation
+    void CUDAContext::propagate(
+        const CUDAMatrix& input, CUDAMatrix& logits, CUDAMatrix& activations, const CUDAMatrix& weights, const CUDAMatrix& biases, const Activation activation
     ) const {
         assert(input.columns() == weights.rows());
         assert(activations.rows() == input.rows());

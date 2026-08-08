@@ -8,13 +8,16 @@
 // things are very experimental right now
 
 namespace mlp {
+    template<typename TDeviceContext>
     class MLP {
+        using Matrix = typename TDeviceContext::Matrix;
+
         public:
 
-        MLP(DeviceContext& device_context, const size_t batch_size = 32, const float learning_rate = 0.01f)
-        : m_context(device_context), m_batchSize(batch_size), m_loss(batch_size, 1), m_learningRate(learning_rate) {}
+        MLP(TDeviceContext& device_context, const size_t batch_size = 32, const float learning_rate = 0.01f)
+        : m_context(device_context), m_batchSize(batch_size), m_learningRate(learning_rate) {}
 
-        ~MLP();
+        ~MLP() {}
 
         // Construct the layers of the network, specifying the sizes and activation functions
         void init(
@@ -45,15 +48,19 @@ namespace mlp {
 
         Batch* last_batch = nullptr;
 
-        DeviceContext& m_context;
+        TDeviceContext& m_context;
 
         size_t m_batchSize;
         
         float m_learningRate;
 
-        std::vector<Layer> m_layers; // includes all layers: input, hidden, output
+        std::vector<Layer<TDeviceContext>> m_layers; // includes all layers: input, hidden, output
 
         Loss m_lossFunction;
-        Matrix m_loss; // used as a vector
     };
 }
+
+#include "mlp/BackwardPass.hpp"
+#include "mlp/CheckOutputs.hpp"
+#include "mlp/ForwardPass.hpp"
+#include "mlp/Init.hpp"

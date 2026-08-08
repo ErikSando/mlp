@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 #include <curand_kernel.h>
 
-#include "device/DeviceContext.hpp"
+#include "device/CUDAContext.hpp"
 
 namespace mlp {
     __global__ void init_rng(curandState* states, const unsigned long seed, const size_t size) {
@@ -22,7 +22,7 @@ namespace mlp {
         M[index] = curand_uniform(&states[index]) * (max - min) + min;
     }
 
-    void DeviceContext::randomise(Matrix& matrix, float min, float max) const {
+    void CUDAContext::randomise(CUDAMatrix& matrix, float min, float max) const {
         cudaError_t err;
 
         unsigned int grid_size = block_count(matrix.size(), BLOCK_SIZE);

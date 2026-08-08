@@ -3,7 +3,7 @@
 
 #include <cuda_runtime.h>
 
-#include "device/DeviceContext.hpp"
+#include "device/CUDAContext.hpp"
 
 namespace mlp {
     // used for verifying correctness of the changes I am making
@@ -86,7 +86,7 @@ namespace mlp {
         C[row * N + col] = A[row * N + col] + B[col];
     }
 
-    void DeviceContext::multiply(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const {
+    void CUDAContext::multiply(const CUDAMatrix& matrix_A, const CUDAMatrix& matrix_B, CUDAMatrix& matrix_C) const {
         assert(matrix_A.columns() == matrix_B.rows());
         assert(matrix_C.rows() == matrix_A.rows());
         assert(matrix_C.columns() == matrix_B.columns());
@@ -111,7 +111,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix multiplication error: ");
     }
 
-    void DeviceContext::multiplyOld(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const {
+    void CUDAContext::multiplyOld(const CUDAMatrix& matrix_A, const CUDAMatrix& matrix_B, CUDAMatrix& matrix_C) const {
         assert(matrix_A.columns() == matrix_B.rows());
         assert(matrix_C.rows() == matrix_A.rows());
         assert(matrix_C.columns() == matrix_B.columns());
@@ -136,7 +136,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix multiplication error: ");
     }
 
-    void DeviceContext::add(const Matrix& matrix_A, const Matrix& matrix_B, Matrix& matrix_C) const {
+    void CUDAContext::add(const CUDAMatrix& matrix_A, const CUDAMatrix& matrix_B, CUDAMatrix& matrix_C) const {
         assert(matrix_A.size() == matrix_B.size());
         assert(matrix_B.size() == matrix_C.size());
         assert(matrix_A.rows() == matrix_B.rows());
@@ -159,7 +159,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix addition error: ");
     }
 
-    void DeviceContext::addBiases(const Matrix& layer, const Matrix& biases, Matrix& output) const {
+    void CUDAContext::addBiases(const CUDAMatrix& layer, const CUDAMatrix& biases, CUDAMatrix& output) const {
         assert(layer.size() == output.size());
         assert(layer.rows() == output.rows());
         assert(layer.columns() == output.columns());

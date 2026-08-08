@@ -2,24 +2,15 @@
 
 #include "device/Activation.cuh"
 #include "device/Loss.cuh"
-#include "device/DeviceContext.hpp"
+#include "device/CUDAContext.hpp"
 
 namespace mlp {
     /*
         Notes and stuff
 
-        I don't know if I'm correctly using the "average across batches"
+        Explanation using cross categorial entropy loss function, softmax output activation function, and leaky ReLU hidden layer activation function:
 
-        For the output layer:
-        dC/dw = -1 x activation of hidden node x (1 - activation of output node)
-        where w connects "hidden node" (last hidden layer) and "output node" (output layer)
-
-        For prior layers (not sure if this is the easiest way to compute it, just an idea for now):
-        dC/dw = dC/da da/dw
-        So basically split the derivate into the influence of w on a, then influence of a on C
-        I think da/dw will be computed earlier and will account for all the next layers too
-
-        Using cross categorial entropy loss function, softmax output activation function, and leaky ReLU hidden layer activation function
+        * I may have made mistakes here
 
         for the output layer (l = L):
 
@@ -66,6 +57,8 @@ namespace mlp {
         and repeat through, in general it looks something like:
 
         for every layer l, we will have dC/da_l pre computed
+         * I'm saying "layer", but each step is looking at the weights between layers so it doesn't really make sense to say for every layer
+           I think I should say we have dC/da pre computed for the layer on the right or the succeeding layer
 
         da_l/dz_l = { 1      if z_L-1 >= 0
                     { 0.01   if z_L-1 < 0
@@ -98,14 +91,11 @@ namespace mlp {
 
         unsigned int weight_index = left_index * n_right + right_index;
 
-        // we are looking at the layer on the right by default, so if there is no suffix it means the right side
-
         float a = a_right[batch * n_right + right_index];
-
-        float al = a_left[batch * n_left + left_index]; // preceding layer activation
+        float aleft = a_left[batch * n_left + left_index]; // preceding layer activation
 
         float da_dz = TActivation::derivative(a); // works for leaky relu, switch to using z later, need to add logits into the kernel launch
-        float dz_dw = al;
+        float dz_dw = aleft;
         float dC_da = dC_da_gradients[batch * n_right + right_index];
 
         float dC_dz = dC_da * da_dz;
@@ -117,7 +107,7 @@ namespace mlp {
         // need some reduction method for these, fix it later:
 
         atomicAdd(&dC_da_next[batch * n_left + left_index], dC_da_left);
-        atomicAdd(&gradients[weight_index], dC_dw);
+        atomicAdd(&gradients[weight_index], dC_dw / batch_size);
     }
 
     template<typename TActivation, typename TLoss>
@@ -151,24 +141,23 @@ namespace mlp {
         // need some reduction method for these, fix it later:
 
         atomicAdd(&dC_da_hidden_list[batch * n_hidden + hidden_index], dC_da_hidden);
-        atomicAdd(&gradients[weight_index], dC_dw_output);
+        atomicAdd(&gradients[weight_index], dC_dw_output / batch_size);
     }
 
     __global__ void optimise_layer_kernel(float* weights, const float* gradients, const size_t n_weights, const float learning_rate) {
-        // unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
-        unsigned int index = threadIdx.x;
+        unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
         if (index >= n_weights) return;
 
-        weights[index] += gradients[index] * learning_rate;
+        weights[index] -= gradients[index] * learning_rate;
     }
 
-    void DeviceContext::computeGradients(
-        const Matrix& dC_da,
-        const Matrix& left_activations, const Matrix& right_activations,
-        const Matrix& weights,
+    void CUDAContext::computeGradients(
+        const CUDAMatrix& dC_da,
+        const CUDAMatrix& left_activations, const CUDAMatrix& right_activations,
+        const CUDAMatrix& weights,
         const Activation activation,
-        Matrix& gradients, Matrix& dC_da_next
+        CUDAMatrix& gradients, CUDAMatrix& dC_da_next
     ) const {
         assert(left_activations.rows() == right_activations.rows());
         assert(dC_da.rows() == right_activations.rows());
@@ -196,12 +185,12 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute hidden layer gradients error: ");
     }
 
-    void DeviceContext::computeOutputGradients(
-        const Matrix& last_hidden_activations, const Matrix& output_activations, const Matrix& weights,
+    void CUDAContext::computeOutputGradients(
+        const CUDAMatrix& last_hidden_activations, const CUDAMatrix& output_activations, const CUDAMatrix& weights,
         const size_t n_last_activations,
         const std::vector<int>& labels,
         const Activation activation, const Loss loss,
-        Matrix& gradients, Matrix& dC_da_hidden
+        CUDAMatrix& gradients, CUDAMatrix& dC_da_hidden
     ) const {
         cudaError_t err;
 
@@ -224,7 +213,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute output layer gradients error: ");
     }
 
-    void DeviceContext::optimiseLayer(Matrix& weights, const Matrix& gradients, const float learning_rate) const {
+    void CUDAContext::optimiseLayer(CUDAMatrix& weights, const CUDAMatrix& gradients, const float learning_rate) const {
         assert(weights.size() == gradients.size());
 
         cudaError_t err;

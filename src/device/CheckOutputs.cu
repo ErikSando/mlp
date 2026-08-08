@@ -1,4 +1,4 @@
-#include "device/DeviceContext.hpp"
+#include "device/CUDAContext.hpp"
 
 namespace mlp {
     __global__ void check_outputs_kernel(const float* outputs, const int* labels, const size_t rows, const size_t cols, const size_t n_samples, float* correct, float* classifications) {
@@ -63,7 +63,7 @@ namespace mlp {
         }
     }
 
-    void DeviceContext::checkOutputs(const Matrix& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix& correct, Matrix& classifications) {
+    void CUDAContext::checkOutputs(const CUDAMatrix& outputs, const std::vector<int>& labels, const size_t n_samples, CUDAMatrix& correct, CUDAMatrix& classifications) const {
         assert(outputs.rows() == labels.size());
         assert(n_samples <= labels.size());
 

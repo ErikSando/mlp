@@ -5,7 +5,7 @@
 #include <cuda_runtime.h>
 
 #include "device/Softmax.cuh"
-#include "device/DeviceContext.hpp"
+#include "device/CUDAContext.hpp"
 
 namespace mlp {
     __global__ void softmax_kernel(const float* input, float* output, const size_t rows, const size_t cols) { // I will be using input = output but its probably good to seperate the output for versatility
@@ -176,7 +176,7 @@ namespace mlp {
         }
     }
 
-    void DeviceContext::softmax(const Matrix& input, Matrix& output) const {
+    void CUDAContext::softmax(const CUDAMatrix& input, CUDAMatrix& output) const {
         assert(input.size() == output.size());
         assert(input.rows() == output.rows());
         assert(input.columns() == output.columns());

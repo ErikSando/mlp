@@ -1,29 +1,30 @@
-// #pragma once
+#pragma once
 
-// #include <cstddef>
+#include <cstddef>
 
-// #include "matrix/Matrix.hpp"
+#include "matrix/Matrix.hpp"
 
-// namespace mlp {
-//     // A wrapper for a float array stored on device memory
-//     class CUDAMatrix : public Matrix {
-//         public:
+namespace mlp {
+    // A wrapper for a float array stored on device memory
+    class CUDAMatrix : public IMatrix {
+        public:
 
-//         CUDAMatrix(size_t rows, size_t columns);
-//         ~CUDAMatrix();
+        CUDAMatrix(size_t rows, size_t columns);
+        ~CUDAMatrix();
 
-//         float* data() const { return m_data; } // device memory address of the matrix values
+        CUDAMatrix(const CUDAMatrix&) = delete;
+        CUDAMatrix& operator=(const CUDAMatrix&) = delete;
 
-//         size_t size() const { return m_size; }
-//         size_t rows() const { return m_rows; }
-//         size_t columns() const { return m_cols; }
+        CUDAMatrix(CUDAMatrix&& other) noexcept;
+        CUDAMatrix& operator=(CUDAMatrix&& other) noexcept;
 
-//         private:
+        void zero() override;
 
-//         size_t m_size;
-//         size_t m_rows;
-//         size_t m_cols;
+        float* data() override { return m_data; } // device memory address of the matrix values
+        const float* data() const override { return m_data; } // device memory address of the matrix values
 
-//         float* m_data = nullptr;
-//     };
-// }
+        private:
+
+        float* m_data = nullptr;
+    };
+}

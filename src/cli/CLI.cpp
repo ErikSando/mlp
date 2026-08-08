@@ -5,7 +5,7 @@
 
 #include "cli/CLI.hpp"
 #include "data/Dataset.hpp"
-#include "device/DeviceContext.hpp"
+#include "device/CUDAContext.hpp"
 #include "mlp/MLP.hpp"
 #include "profiling/Profiler.hpp"
 
@@ -28,9 +28,9 @@ namespace mlp {
         mlp::CUDAProfiler cuda_profiler;
         mlp::Profiler profiler;
 
-        mlp::DeviceContext context(&cuda_profiler);
+        mlp::CUDAContext context(&cuda_profiler);
 
-        constexpr size_t BATCH_SIZE = 4;
+        constexpr size_t BATCH_SIZE = 1;
 
         // std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
         std::vector<size_t> layer_sizes = { 4, 4, 4 };
@@ -39,14 +39,14 @@ namespace mlp {
         // train_dataset.parseBatch(batch);
         dataset.parseBatch(batch);
 
-        mlp::MLP model(context, BATCH_SIZE);
+        mlp::MLP<CUDAContext> model(context, BATCH_SIZE);
         model.init(layer_sizes);
 
-        // for (int i = 0; i < 1000; i++) {
-            // train_dataset.parseBatch(batch);
+        for (int i = 0; i < 10; i++) {
+            dataset.parseBatch(batch);
             model.forwardPass(batch);
             model.backwardPass(batch);
-        // }
+        }
 
         // Test(model, dataset);
 

@@ -1,4 +1,4 @@
-#include "device/DeviceContext.hpp"
+#include "device/CUDAContext.hpp"
 
 namespace mlp {
     __global__ void cce_kernel(const float* output, const float* target, const size_t classes, const size_t batch_size, float* result) {
@@ -10,7 +10,7 @@ namespace mlp {
         result[batch] = -logf(output[batch * classes + index]);
     }
 
-    void DeviceContext::cce(const Matrix& output, const Matrix& target, Matrix& result) const {
+    void CUDAContext::cce(const CUDAMatrix& output, const CUDAMatrix& target, CUDAMatrix& result) const {
         assert(output.size() == target.size());
         assert(output.rows() == target.rows());
         assert(output.columns() == target.columns());
@@ -30,7 +30,7 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA layer propagation error: ");
     }
 
-    void DeviceContext::computeLoss(const Matrix& output, const Matrix& target, Matrix& result, const Loss loss) const {
+    void CUDAContext::computeLoss(const CUDAMatrix& output, const CUDAMatrix& target, CUDAMatrix& result, const Loss loss) const {
         assert(output.size() == target.size());
         assert(output.rows() == target.rows());
         assert(output.columns() == target.columns());

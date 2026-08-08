@@ -2,11 +2,12 @@
 
 #include <cuda_runtime.h>
 
+#include "matrix/CUDAMatrix.hpp"
 #include "matrix/Matrix.hpp"
 
 namespace mlp {
     Matrix::Matrix(const size_t rows, const size_t columns) : m_rows(rows), m_cols(columns), m_size(rows * columns) {
-        cudaError_t err = cudaMalloc((void**) &m_data, rows * columns * sizeof(float));
+        cudaError_t err = cudaMalloc((void**) &m_data, m_size * sizeof(float));
         if (err != cudaSuccess) throw std::runtime_error(cudaGetErrorString(err));
     }
 
@@ -35,14 +36,9 @@ namespace mlp {
         return *this;
     }
 
-    void Matrix::resize(const size_t rows, const size_t columns) {
-        cudaFree(m_data);
-
-        cudaError_t err = cudaMalloc((void**) &m_data, rows * columns * sizeof(float));
+    void Matrix::zero() {
+        cudaError_t err = cudaMemset(m_data, 0, m_size * sizeof(float));
         if (err != cudaSuccess) throw std::runtime_error(cudaGetErrorString(err));
-
-        m_rows = rows;
-        m_cols = columns;
     }
 
     DeviceInt::DeviceInt(const int value) {
@@ -51,5 +47,38 @@ namespace mlp {
 
         err = cudaMemcpy((void*) m_data, (void*) &value, sizeof(int), cudaMemcpyHostToDevice);
         // if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
+    }
+
+    CUDAMatrix::CUDAMatrix(const size_t rows, const size_t columns) : IMatrix(rows, columns) {
+        cudaError_t err = cudaMalloc((void**) &m_data, size() * sizeof(float));
+        if (err != cudaSuccess) throw std::runtime_error(cudaGetErrorString(err));
+    }
+
+    CUDAMatrix::~CUDAMatrix() {
+        cudaFree(m_data);
+    }
+
+    CUDAMatrix::CUDAMatrix(CUDAMatrix&& other) noexcept
+    : IMatrix(std::move(other)), m_data(other.m_data)
+    {
+        other.m_data = nullptr;
+    }
+
+    CUDAMatrix& CUDAMatrix::operator=(CUDAMatrix&& other) noexcept {
+        if (this != &other) {
+            cudaFree(m_data);
+
+           IMatrix::operator=(std::move(other));
+
+            m_data = other.m_data;
+            other.m_data = nullptr;
+        }
+
+        return *this;
+    }
+
+    void CUDAMatrix::zero() {
+        cudaError_t err = cudaMemset(m_data, 0, size() * sizeof(float));
+        if (err != cudaSuccess) throw std::runtime_error(cudaGetErrorString(err));
     }
 }

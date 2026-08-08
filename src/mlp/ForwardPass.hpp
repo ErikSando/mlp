@@ -1,9 +1,10 @@
+#pragma once
+
 #include <cassert>
 
-#include "mlp/MLP.hpp"
-
 namespace mlp {
-    void MLP::forwardPass(const Batch& batch) {
+    template<typename TDeviceContext>
+    void MLP<TDeviceContext>::forwardPass(const Batch& batch) {
         assert(m_batchSize == m_layers[0].activations.rows());
         assert(batch.data.size() == m_layers[0].activations.size());
 
@@ -14,7 +15,8 @@ namespace mlp {
         }
     }
 
-    void MLP::copyOutputs(float* host_outputs) {
+    template<typename TDeviceContext>
+    void MLP<TDeviceContext>::copyOutputs(float* host_outputs) {
         m_context.transfer(m_layers.back().activations, host_outputs);
     }
 }

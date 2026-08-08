@@ -7,24 +7,34 @@
 // things are very experimental right now
 
 namespace mlp {
-    template<typename TDeviceContext>
+    constexpr float UNDEFINED_CLASS = -1;
+    constexpr float UNDEFINED_ERROR = -1.0f;
+
+    struct ClassifyInfo {
+        int classification = UNDEFINED_CLASS;
+        float error = UNDEFINED_ERROR;
+    };
+
+    template<typename TContext>
     class MLP {
-        using Matrix = typename TDeviceContext::Matrix;
+        using Matrix = typename TContext::Matrix;
 
         public:
 
-        MLP(TDeviceContext& device_context, const size_t batch_size = 32, const float learning_rate = 0.01f)
-        : m_context(device_context), m_batchSize(batch_size), m_learningRate(learning_rate) {}
-
+        MLP(TContext& device_context) : m_context(device_context) {}
         ~MLP() {}
 
         // Construct the layers of the network, specifying the sizes and activation functions
         void init(
             std::vector<size_t>& layer_sizes,
+            const size_t batch_size = 32UL,
             const Activation hidden_activation = Activation::LEAKY_RELU,
             const Activation output_activation = Activation::SOFTMAX,
-            const Loss loss_function = Loss::CCE
+            const Loss loss_function = Loss::CCE,
+            const float learning_rate = 0.01f
         );
+
+        void classify(const Sample& sample, ClassifyInfo& info);
 
         void forwardPass(const Batch& batch);
         void backwardPass(const Batch& batch);
@@ -43,23 +53,22 @@ namespace mlp {
         size_t getInputCount() { return m_layers[0].logits.columns(); }
         constexpr size_t getBatchSize() { return m_batchSize; }
 
+        float getLearningRate() { return m_learningRate; }
+        void setLearningRate(float learning_rate) { m_learningRate = learning_rate; }
+
         private:
 
-        Batch* last_batch = nullptr;
+        std::vector<Layer<TContext>> m_layers; // includes all layers: input, hidden, output
 
-        TDeviceContext& m_context;
-
+        TContext& m_context;
         size_t m_batchSize;
-        
         float m_learningRate;
-
-        std::vector<Layer<TDeviceContext>> m_layers; // includes all layers: input, hidden, output
-
         Loss m_lossFunction;
     };
 }
 
 #include "mlp/BackwardPass.hpp"
 #include "mlp/CheckOutputs.hpp"
+#include "mlp/Classify.hpp"
 #include "mlp/ForwardPass.hpp"
 #include "mlp/Init.hpp"

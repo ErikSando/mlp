@@ -1,10 +1,10 @@
 #pragma once
 
 namespace mlp {
-    template<typename TDeviceContext>
-    void MLP<TDeviceContext>::backwardPass(const Batch& batch) {
-        using Layer = Layer<TDeviceContext>;
-        using Matrix = typename TDeviceContext::Matrix;
+    template<typename TContext>
+    void MLP<TContext>::backwardPass(const Batch& batch) {
+        using Layer = Layer<TContext>;
+        using Matrix = typename TContext::Matrix;
 
         Layer& output_layer = m_layers.back();
         Layer& last_hidden_layer = m_layers.at(m_layers.size() - 2);

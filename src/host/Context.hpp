@@ -50,6 +50,8 @@ namespace mlp {
 
             void checkOutputs(const Matrix& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix& correct, Matrix& classifications) const;
 
+            void computeLoss(const Matrix& outputs, const Matrix& targets, Matrix& result, const Loss loss) const;
+
             inline void synchronise() const {}
 
             private:

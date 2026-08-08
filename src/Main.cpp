@@ -1,7 +1,7 @@
 #include "cli/CLI.hpp"
 
 int main() {
-    mlp::CommandLoop();
+    mlp::command_loop();
 
     return 0;
 }

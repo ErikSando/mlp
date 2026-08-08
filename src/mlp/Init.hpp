@@ -4,9 +4,17 @@
 #include <iostream>
 
 namespace mlp {
-    template<typename TDeviceContext>
-    void MLP<TDeviceContext>::init(std::vector<size_t>& layer_sizes, const Activation hidden_activation, const Activation output_activation, const Loss loss_function) {
+    template<typename TContext>
+    void MLP<TContext>::init(
+        std::vector<size_t>& layer_sizes,
+        const size_t batch_size,
+        const Activation hidden_activation, const Activation output_activation,
+        const Loss loss_function,
+        const float learning_rate
+    ) {
+        m_batchSize = batch_size;
         m_lossFunction = loss_function;
+        m_learningRate = learning_rate;
 
         size_t node_count = layer_sizes[0];
 
@@ -24,12 +32,7 @@ namespace mlp {
             Activation activation = isOutputLayer ? output_activation : hidden_activation;
 
             m_layers.emplace_back(m_batchSize, node_count, previous_count, activation);
-            // m_context.randomise(m_layers.back().weights, weight_min, weight_max);
-
-            float weights[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0 };
-
-            m_context.transfer(weights, m_layers.back().weights);
-
+            m_context.randomise(m_layers.back().weights, weight_min, weight_max);
             m_layers.back().biases.zero();
 
             previous_count = node_count;

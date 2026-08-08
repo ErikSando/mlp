@@ -3,8 +3,8 @@
 #include <cassert>
 
 namespace mlp {
-    template<typename TDeviceContext>
-    void MLP<TDeviceContext>::forwardPass(const Batch& batch) {
+    template<typename TContext>
+    void MLP<TContext>::forwardPass(const Batch& batch) {
         assert(m_batchSize == m_layers[0].activations.rows());
         assert(batch.data.size() == m_layers[0].activations.size());
 
@@ -15,8 +15,8 @@ namespace mlp {
         }
     }
 
-    template<typename TDeviceContext>
-    void MLP<TDeviceContext>::copyOutputs(float* host_outputs) {
+    template<typename TContext>
+    void MLP<TContext>::copyOutputs(float* host_outputs) {
         m_context.transfer(m_layers.back().activations, host_outputs);
     }
 }

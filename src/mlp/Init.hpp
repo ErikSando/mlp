@@ -24,7 +24,11 @@ namespace mlp {
             Activation activation = isOutputLayer ? output_activation : hidden_activation;
 
             m_layers.emplace_back(m_batchSize, node_count, previous_count, activation);
-            m_context.randomise(m_layers.back().weights, weight_min, weight_max);
+            // m_context.randomise(m_layers.back().weights, weight_min, weight_max);
+
+            float weights[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0 };
+
+            m_context.transfer(weights, m_layers.back().weights);
 
             m_layers.back().biases.zero();
 

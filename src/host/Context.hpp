@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cassert>
-#include <iostream>
 
 #include "enums/Enums.hpp"
 #include "host/matrix/Matrix.hpp"
@@ -22,7 +21,7 @@ namespace mlp {
 
             void randomise(Matrix& matrix, float min, float max) const;
 
-            void softmax(const Matrix& input, Matrix& output) const;
+            void softmax(const Matrix& inputs, Matrix& outputs) const;
 
             void propagate(
                 const Matrix& last_activations,

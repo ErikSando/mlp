@@ -1,10 +1,13 @@
+#include <cassert>
+
 #include "host/Context.hpp"
 #include "host/operations/Activation.hpp"
+#include "host/operations/Softmax.hpp"
 
 namespace mlp {
     namespace host {
-        template<typename TActivation>
-        void propagate(
+        template<typename TActivation = NoActivation>
+        void propagate_op(
             const float* inputs, float* logits, float* activations,
             const float* weights, const float* biases,
             const size_t batch_size, const size_t input_count, const size_t output_count
@@ -17,7 +20,11 @@ namespace mlp {
 
                     for (unsigned int input_column = 0; input_column < input_count; input_column++) {
                         unsigned int input_index = batch * input_count + input_column;
-                        unsigned int weight_index = input_index * input_count + output_index;
+                        unsigned int weight_index = input_column * output_count + output_column;
+
+                        assert(input_index < batch_size * input_count);
+                        assert(output_index < batch_size * output_count);
+                        assert(weight_index < input_count * output_count);
 
                         logits[output_index] += inputs[input_index] * weights[weight_index];
                     }
@@ -38,27 +45,36 @@ namespace mlp {
             assert(activations.columns() == weights.columns());
             assert(activations.size() == logits.size());
 
+            if (m_profiler) m_profiler->startTask("Propagation");
+
             switch (activation) {
                 case Activation::SIGMOID:
-
+                    propagate_op<Sigmoid>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
                 break;
 
                 case Activation::TANH:
-                    
+                    propagate_op<Tanh>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
                 break;
 
                 case Activation::RELU:
-                    
+                    propagate_op<ReLU>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
                 break;
 
                 case Activation::LEAKY_RELU:
-                    
+                    propagate_op<LeakyReLU>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
                 break;
 
                 case Activation::SOFTMAX:
-                    
+                    propagate_op(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
+                    softmax_op(logits.data(), activations.data(), logits.rows(), logits.columns());
+                break;
+
+                default:
+                    propagate_op<NoActivation>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
                 break;
             }
+
+            if (m_profiler) m_profiler->endTask();
         }
     }
 }

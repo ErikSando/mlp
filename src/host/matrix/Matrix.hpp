@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstring>
 #include <vector>
 
 namespace mlp {
@@ -8,10 +9,12 @@ namespace mlp {
         class Matrix {
             public:
 
-            Matrix(size_t rows, size_t columns) : m_rows(rows), m_cols(columns), m_data(rows, columns) {}
-            ~Matrix();
+            Matrix(size_t rows, size_t columns) : m_rows(rows), m_cols(columns), m_size(rows * columns), m_data(rows * columns) {}
+            ~Matrix() {}
 
-            void zero();
+            inline void zero() {
+                std::memset(m_data.data(), 0, m_data.size() * sizeof(float));
+            }
 
             float* data() { return m_data.data(); }
             const float* data() const { return m_data.data(); }

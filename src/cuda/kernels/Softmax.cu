@@ -9,7 +9,7 @@
 
 namespace mlp {
     namespace cuda {
-        __global__ void softmax_kernel(const float* input, float* output, const size_t rows, const size_t cols) { // I will be using input = output but its probably good to seperate the output for versatility
+        __global__ void softmax_kernel(const float* inputs, float* outputs, const size_t rows, const size_t cols) {
             unsigned int row = blockIdx.x; // i dont think the choice between unsigned int or size_t matters
 
             if (row >= rows) return;
@@ -34,7 +34,7 @@ namespace mlp {
             */
 
             for (unsigned int col = tid; col < cols; col += stride) {
-                float value = input[row * cols + col];
+                float value = inputs[row * cols + col];
                 local_max = fmaxf(local_max, value);
             }
 
@@ -146,7 +146,7 @@ namespace mlp {
             float partial_sum = 0.0f;
 
             for (unsigned int col = tid; col < cols; col += stride) {
-                partial_sum += expf(input[row * cols + col] - max_value);
+                partial_sum += expf(inputs[row * cols + col] - max_value);
             }
 
             shared[tid] = partial_sum;
@@ -173,22 +173,22 @@ namespace mlp {
             // And then we can assign exp(x - max) / sum(exp(x - max)) to the values in the output matrix
 
             for (unsigned int col = tid; col < cols; col += stride) {
-                output[row * cols + col] = expf(input[row * cols + col] - max_value) / sum;
+                outputs[row * cols + col] = expf(inputs[row * cols + col] - max_value) / sum;
             }
         }
 
-        void Context::softmax(const Matrix& input, Matrix& output) const {
-            assert(input.size() == output.size());
-            assert(input.rows() == output.rows());
-            assert(input.columns() == output.columns());
-            assert(input.columns() < BLOCK_SIZE);
+        void Context::softmax(const Matrix& inputs, Matrix& outputs) const {
+            assert(inputs.size() == outputs.size());
+            assert(inputs.rows() == outputs.rows());
+            assert(inputs.columns() == outputs.columns());
+            assert(inputs.columns() < BLOCK_SIZE);
 
             cudaError_t err;
 
             TaskID task;
             if (m_profiler) task = m_profiler->startTask("Softmax");
 
-            softmax_kernel<<<input.rows(), BLOCK_SIZE>>>(input.data(), output.data(), input.rows(), input.columns());
+            softmax_kernel<<<inputs.rows(), BLOCK_SIZE>>>(inputs.data(), outputs.data(), inputs.rows(), inputs.columns());
 
             if (m_profiler) m_profiler->endTask(task);
 

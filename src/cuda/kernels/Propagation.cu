@@ -122,7 +122,7 @@ namespace mlp {
                     propagate_kernel_tiled<LeakyReLU><<<grid, block>>>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
                 break;
 
-                case Activation::SOFTMAX:
+                case Activation::SOFTMAX: {
                     propagate_kernel_tiled<<<grid, block>>>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
 
                     TaskID sm_task;
@@ -132,6 +132,12 @@ namespace mlp {
                     softmax_kernel<<<inputs.rows(), BLOCK_SIZE>>>(logits.data(), activations.data(), logits.rows(), logits.columns());
 
                     if (m_profiler) m_profiler->endTask(sm_task);
+
+                    break;
+                }
+
+                default:
+                    propagate_kernel_tiled<<<grid, block>>>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
                 break;
             }
 

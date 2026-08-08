@@ -45,7 +45,7 @@ namespace mlp {
             // Randomise each value in the matrix to a value between min and max
             void randomise(Matrix& matrix, float min, float max) const;
 
-            void softmax(const Matrix& input, Matrix& output) const;
+            void softmax(const Matrix& inputs, Matrix& outputs) const;
 
             /*
                 Propagation function (L_n+1 = activation(L_n W + b) fused into one kernel, L_n is the nth layer)

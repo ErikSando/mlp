@@ -30,25 +30,42 @@ namespace mlp {
         mlp::cuda::Profiler cuda_profiler;
         mlp::host::Profiler host_profiler;
 
-        mlp::cuda::Context context(&cuda_profiler);
+        mlp::cuda::Context cuda_context(&cuda_profiler);
+        mlp::host::Context host_context(&host_profiler);
 
-        constexpr size_t BATCH_SIZE = 1;
+        constexpr size_t BATCH_SIZE = 4;
 
         // std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
         std::vector<size_t> layer_sizes = { 4, 4, 4 };
 
         mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
         // train_dataset.parseBatch(batch);
+        // test_dataset.parseBatch(batch);
         dataset.parseBatch(batch);
 
-        mlp::MLP<cuda::Context> model(context, BATCH_SIZE);
+        mlp::MLP<host::Context> model(host_context, BATCH_SIZE);
         model.init(layer_sizes);
 
-        for (int i = 0; i < 10; i++) {
-            dataset.parseBatch(batch);
-            model.forwardPass(batch);
-            model.backwardPass(batch);
+        model.forwardPass(batch);
+        host_profiler.print();
+
+        float* host_outputs = new float[BATCH_SIZE * layer_sizes.back()];
+
+        model.copyOutputs(host_outputs);
+
+        for (size_t i = 0; i < BATCH_SIZE * layer_sizes.back(); i++) {
+            std::cout << "  " << host_outputs[i];
         }
+        std::cout << "\n";
+
+        delete[] host_outputs;
+
+        // for (int i = 0; i < 100; i++) {
+        //     // dataset.parseBatch(batch);
+        //     test_dataset.parseBatch(batch);
+        //     model.forwardPass(batch);
+        //     // model.backwardPass(batch);
+        // }
 
         // Test(model, dataset);
 

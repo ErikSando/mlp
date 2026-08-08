@@ -4,7 +4,7 @@
 #include <iostream>
 
 namespace mlp {
-    enum class Activation { // not sure where to put this, leaving it here for now
+    enum class Activation {
         NONE,
         SIGMOID, TANH, RELU, LEAKY_RELU, // hidden layer activation functions
         SOFTMAX // output activation functions

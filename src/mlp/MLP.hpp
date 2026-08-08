@@ -2,7 +2,6 @@
 
 #include "data/Batch.hpp"
 #include "device/DeviceContext.hpp"
-// #include "matrix/Matrix.hpp"
 #include "mlp/Layer.hpp"
 
 // things are very experimental right now

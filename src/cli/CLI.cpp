@@ -7,7 +7,7 @@
 #include "data/Dataset.hpp"
 #include "device/CUDAContext.hpp"
 #include "mlp/MLP.hpp"
-#include "profiling/Profiler.hpp"
+#include "profiling/HostProfiler.hpp"
 
 namespace mlp {
     std::string to_lower(std::string str) {
@@ -26,7 +26,7 @@ namespace mlp {
         mlp::Dataset dataset("res/testing/test_data_2.csv");
 
         mlp::CUDAProfiler cuda_profiler;
-        mlp::Profiler profiler;
+        mlp::HostProfiler host_profiler;
 
         mlp::CUDAContext context(&cuda_profiler);
 

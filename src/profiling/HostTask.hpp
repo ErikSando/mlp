@@ -6,10 +6,10 @@ namespace mlp {
     using clock = std::chrono::steady_clock;
     using timestamp_t = clock::time_point;
 
-    class Task {
+    class HostTask {
         public:
 
-        Task(const char* name) : m_name(name) {}
+        HostTask(const char* name) : m_name(name) {}
 
         void start();
         void end();

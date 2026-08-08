@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "profiling/Task.hpp"
+#include "profiling/HostTask.hpp"
 
 /*
     Note to self: before you start profiling, implement some way for the CUDA functions to log the start and end so it's measured in GPU execution time
@@ -10,10 +10,10 @@
 */
 
 namespace mlp {
-    class Profiler {
+    class HostProfiler {
         public:
 
-        Profiler(const char* name = "Profiler tasks") : m_name(name) {}
+        HostProfiler(const char* name = "Profiler tasks") : m_name(name) {}
 
         void startTask(const char* name);
         void endTask();
@@ -26,6 +26,6 @@ namespace mlp {
 
         bool m_inTask = false;
 
-        std::vector<Task> m_tasks;
+        std::vector<HostTask> m_tasks;
     };
 }

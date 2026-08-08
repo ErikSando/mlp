@@ -1,18 +1,18 @@
 #include <iostream>
 
-#include "profiling/Task.hpp"
+#include "profiling/HostTask.hpp"
 
 namespace mlp {
-    void Task::start() {
+    void HostTask::start() {
         m_start = clock::now();
     }
 
-    void Task::end() {
+    void HostTask::end() {
         m_end = clock::now();
         m_duration = std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(m_end - m_start).count();
     }
 
-    void Task::print() {
+    void HostTask::print() {
         std::cout << m_name << ": " << m_duration << " ms\n";
     }
 }

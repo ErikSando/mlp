@@ -26,61 +26,30 @@ namespace mlp {
         return (thread_count + block_size - 1) / block_size;
     }
 
-    // enum class Activation { // not sure where to put this, leaving it here for now
-    //     NONE,
-    //     SIGMOID, TANH, RELU, LEAKY_RELU, // hidden layer activation functions
-    //     SOFTMAX // output activation functions
-    // };
-
-    // enum class Loss {
-    //     MSE, CCE
-    // };
-
-    class CUDAContext : public IDeviceContext<CUDAMatrix> {
+    class CUDAContext {
         public:
 
+        // used externally to retrieve the appropriate matrix/profiler type
+
         using Matrix = CUDAMatrix;
+        using Profiler = CUDAProfiler;
 
         CUDAContext(CUDAProfiler* profiler = nullptr) : m_profiler(profiler) {}
 
         // I marked every member function as const so I can use const DeviceContext& in function arguments but I don't know if that has any benefits
 
         // Transfer data from device memory to host memory
-        void transfer(const CUDAMatrix& src, float* dest) const override;
+        void transfer(const CUDAMatrix& src, float* dest) const;
 
         // Transfer data from host memory to device memory
-        void transfer(const float* src, CUDAMatrix& dest) const override;
+        void transfer(const float* src, CUDAMatrix& dest) const;
 
         void transfer(const CUDAMatrix& src, CUDAMatrix& dest) const;
 
         // Randomise each value in the matrix to a value between min and max
         void randomise(CUDAMatrix& matrix, float min, float max) const;
 
-        // Calculate C = AB
-        void multiply(const CUDAMatrix& matrix_A, const CUDAMatrix& matrix_B, CUDAMatrix& matrix_C) const;
-        // Calculate C = AB
-        void multiplyOld(const CUDAMatrix& matrix_A, const CUDAMatrix& matrix_B, CUDAMatrix& matrix_C) const;
-
-        // Calculate C = A + B
-        void add(const CUDAMatrix& matrix_A, const CUDAMatrix& matrix_B, CUDAMatrix& matrix_C) const;
-
-        // Perform C = A + b, where b is a row matrix, added onto each row in A
-        void addBiases(const CUDAMatrix& layer, const CUDAMatrix& biases, CUDAMatrix& output) const;
-
-        // Activation functions
-
-        void sigmoid(const CUDAMatrix& input, CUDAMatrix& output) const;
-        void tanh(const CUDAMatrix& input, CUDAMatrix& output) const;
-        void relu(const CUDAMatrix& input, CUDAMatrix& output) const;
-        void leakyReLU(const CUDAMatrix& input, CUDAMatrix& output) const;
         void softmax(const CUDAMatrix& input, CUDAMatrix& output) const;
-
-        // Loss functions
-        // Might merge these with a back propagation kernel like with the forward propagation kerne;
-
-        void mse() const;
-        void cce(const CUDAMatrix& output, const CUDAMatrix& target, CUDAMatrix& result) const;
-        void hinge() const;
 
         /*
             Propagation function (L_n+1 = activation(L_n W + b) fused into one kernel, L_n is the nth layer)
@@ -90,14 +59,14 @@ namespace mlp {
             biases: biases matrix (really a vector)
             activation: activation function type
         */
-        virtual void propagate(
+        void propagate(
             const CUDAMatrix& last_activations,
             CUDAMatrix& logits, CUDAMatrix& activations,
             const CUDAMatrix& weights, const CUDAMatrix& biases,
             const Activation activation
-        ) const override;
+        ) const;
 
-        void computeLoss(const CUDAMatrix& output, const CUDAMatrix& target, CUDAMatrix& result, const Loss loss) const;
+        // void computeLoss(const CUDAMatrix& output, const CUDAMatrix& target, CUDAMatrix& result, const Loss loss) const;
 
         // void backPropagate(const CUDAMatrix& outputs, const Loss loss) const;
 
@@ -107,25 +76,25 @@ namespace mlp {
             Use a kernel to compute the gradients for a layer, using the previous layers' result for the next (starting at the output layer)
         */
 
-        virtual void computeOutputGradients(
+        void computeOutputGradients(
             const CUDAMatrix& last_activations, const CUDAMatrix& activations, const CUDAMatrix& weights,
             const size_t n_last_activations,
             const std::vector<int>& labels,
             const Activation activation, const Loss loss,
             CUDAMatrix& gradients, CUDAMatrix& dC_da_next
-        ) const override; // output layer
+        ) const; // output layer
 
-        virtual void computeGradients(
+        void computeGradients(
             const CUDAMatrix& dC_da,
             const CUDAMatrix& left_activations, const CUDAMatrix& right_activations,
             const CUDAMatrix& weights,
             const Activation activation,
             CUDAMatrix& gradients, CUDAMatrix& dC_da_next
-        ) const override; // hidden layers
+        ) const; // hidden layers
 
-        virtual void optimiseLayer(CUDAMatrix& weights, const CUDAMatrix& gradients, const float learning_rate) const override;
+        void optimiseLayer(CUDAMatrix& weights, const CUDAMatrix& gradients, const float learning_rate) const;
 
-        virtual void checkOutputs(const CUDAMatrix& outputs, const std::vector<int>& labels, const size_t n_samples, CUDAMatrix& correct, CUDAMatrix& classifications) const override;
+        void checkOutputs(const CUDAMatrix& outputs, const std::vector<int>& labels, const size_t n_samples, CUDAMatrix& correct, CUDAMatrix& classifications) const;
 
         inline void synchronise() const {
             cudaError_t err = cudaDeviceSynchronize();

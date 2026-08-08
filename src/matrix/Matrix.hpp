@@ -3,64 +3,6 @@
 #include <cstddef>
 
 namespace mlp {
-    class Matrix {
-        public:
-
-        Matrix(const size_t rows, const size_t columns);
-        ~Matrix();
-
-        Matrix(const Matrix&) = delete;
-        Matrix& operator=(const Matrix&) = delete;
-
-        Matrix(Matrix&& other) noexcept;
-        Matrix& operator=(Matrix&& other) noexcept;
-
-        void zero();
-
-        float* data() const { return m_data; } // device memory address of the matrix values
-
-        constexpr size_t size() const { return m_size; }
-        constexpr size_t rows() const { return m_rows; }
-        constexpr size_t columns() const { return m_cols; }
-
-        private:
-
-        size_t m_size;
-        size_t m_rows;
-        size_t m_cols;
-
-        float* m_data = nullptr;
-    };
-
-    class IMatrix {
-        public:
-
-        IMatrix(const size_t rows, const size_t columns)
-        : m_rows(rows), m_cols(columns), m_size(rows * columns) {}
-
-        virtual ~IMatrix() = default;
-
-        IMatrix(const IMatrix&) = delete;
-        IMatrix& operator=(const IMatrix&) = delete;
-
-        IMatrix(IMatrix&&) noexcept = default;
-        IMatrix& operator=(IMatrix&&) noexcept = default;
-
-        virtual void zero() = 0;
-        virtual float* data() = 0;
-        virtual const float* data() const = 0;
-
-        constexpr size_t size() const { return m_size; }
-        constexpr size_t rows() const { return m_rows; }
-        constexpr size_t columns() const { return m_cols; }
-
-        private:
-
-        size_t m_size;
-        size_t m_rows;
-        size_t m_cols;
-    };
-
     struct DeviceInt {
         DeviceInt(const int value = 0);
         ~DeviceInt();

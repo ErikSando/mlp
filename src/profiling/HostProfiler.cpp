@@ -1,10 +1,10 @@
 #include <cstring>
 #include <iostream>
 
-#include "profiling/Profiler.hpp"
+#include "profiling/HostProfiler.hpp"
 
 namespace mlp {
-    void Profiler::startTask(const char* name) {
+    void HostProfiler::startTask(const char* name) {
         if (m_inTask) {
             std::cerr << "\033[31m" << "[Error]\033[0m Called startTask() with an unfinished task.";
             return;
@@ -15,7 +15,7 @@ namespace mlp {
         m_inTask = true;
     }
 
-    void Profiler::endTask() {
+    void HostProfiler::endTask() {
         if (!m_inTask) {
             std::cerr << "\033[31m" << "[Error]\033[0m Called endTask() without an active task.";
             return;
@@ -25,12 +25,12 @@ namespace mlp {
         m_inTask = false;
     }
 
-    void Profiler::print() {
+    void HostProfiler::print() {
         std::cout << m_name << ":\n";
 
         float total = 0.0f;
 
-        for (Task& task : m_tasks) {
+        for (HostTask& task : m_tasks) {
             // const char* name = task.getName();
             // size_t name_len = std::strlen(name);
             float duration = task.getDuration();

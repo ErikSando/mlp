@@ -3,8 +3,8 @@
 
 #include <cuda_runtime.h>
 
-#include "device/Activation.cuh"
-#include "device/Softmax.cuh"
+#include "device/cuda/Activation.cuh"
+#include "device/cuda/Softmax.cuh"
 #include "device/CUDAContext.hpp"
 
 namespace mlp {
@@ -83,10 +83,10 @@ namespace mlp {
     }
 
     void CUDAContext::propagate(
-        const CUDAMatrix& input, CUDAMatrix& logits, CUDAMatrix& activations, const CUDAMatrix& weights, const CUDAMatrix& biases, const Activation activation
+        const CUDAMatrix& inputs, CUDAMatrix& logits, CUDAMatrix& activations, const CUDAMatrix& weights, const CUDAMatrix& biases, const Activation activation
     ) const {
-        assert(input.columns() == weights.rows());
-        assert(activations.rows() == input.rows());
+        assert(inputs.columns() == weights.rows());
+        assert(activations.rows() == inputs.rows());
         assert(activations.columns() == weights.columns());
         assert(activations.size() == logits.size());
 
@@ -97,7 +97,7 @@ namespace mlp {
 
         dim3 grid(
             block_count(weights.columns(), TILE_SIZE),
-            block_count(input.rows(), TILE_SIZE)
+            block_count(inputs.rows(), TILE_SIZE)
         );
 
         CUDATaskID task;
@@ -105,29 +105,29 @@ namespace mlp {
 
         switch (activation) {
             case Activation::SIGMOID:
-                propagate_kernel_tiled<Sigmoid><<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
+                propagate_kernel_tiled<Sigmoid><<<grid, block>>>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
             break;
 
             case Activation::TANH:
-                propagate_kernel_tiled<Tanh><<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
+                propagate_kernel_tiled<Tanh><<<grid, block>>>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
             break;
 
             case Activation::RELU:
-                propagate_kernel_tiled<ReLU><<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
+                propagate_kernel_tiled<ReLU><<<grid, block>>>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
             break;
 
             case Activation::LEAKY_RELU:
-                propagate_kernel_tiled<LeakyReLU><<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
+                propagate_kernel_tiled<LeakyReLU><<<grid, block>>>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
             break;
 
             case Activation::SOFTMAX:
-                propagate_kernel_tiled<<<grid, block>>>(input.data(), logits.data(), activations.data(), weights.data(), biases.data(), input.rows(), input.columns(), activations.columns());
+                propagate_kernel_tiled<<<grid, block>>>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
 
                 CUDATaskID sm_task;
                 if (m_profiler) sm_task = m_profiler->startTask("Softmax"); // this is like a sub task, it overlaps with layer propagation, but i havent accounted for this in the profiler
 
                 // logits = activations here, but I am using logits as inputs and activations as outputs because it makes sense
-                softmax_kernel<<<input.rows(), BLOCK_SIZE>>>(logits.data(), activations.data(), logits.rows(), logits.columns());
+                softmax_kernel<<<inputs.rows(), BLOCK_SIZE>>>(logits.data(), activations.data(), logits.rows(), logits.columns());
 
                 if (m_profiler) m_profiler->endTask(sm_task);
             break;

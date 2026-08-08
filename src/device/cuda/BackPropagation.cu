@@ -1,7 +1,7 @@
 #include <cassert>
 
-#include "device/Activation.cuh"
-#include "device/Loss.cuh"
+#include "device/cuda/Activation.cuh"
+#include "device/cuda/Loss.cuh"
 #include "device/CUDAContext.hpp"
 
 namespace mlp {

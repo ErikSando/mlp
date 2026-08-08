@@ -4,7 +4,7 @@
 
 #include <cuda_runtime.h>
 
-#include "device/Softmax.cuh"
+#include "device/cuda/Softmax.cuh"
 #include "device/CUDAContext.hpp"
 
 namespace mlp {

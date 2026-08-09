@@ -177,7 +177,7 @@ namespace mlp {
             }
         }
 
-        void Context::softmax(const Matrix& inputs, Matrix& outputs) const {
+        void Context::softmax(const Matrix_t& inputs, Matrix_t& outputs) const {
             assert(inputs.size() == outputs.size());
             assert(inputs.rows() == outputs.rows());
             assert(inputs.columns() == outputs.columns());

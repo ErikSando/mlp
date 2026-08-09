@@ -21,19 +21,20 @@ namespace mlp {
         float weight_max = std::sqrt(2.0f / static_cast<float>(node_count));
         float weight_min = -weight_max;
 
-        m_layers.emplace_back(m_batchSize, node_count, 0);
+        m_layers.emplace_back(std::make_unique<Layer_t>(m_batchSize, node_count, 0));
 
         size_t previous_count = node_count;
 
         for (size_t i = 1; i < layer_sizes.size(); i++) {
             size_t node_count = layer_sizes[i];
 
-            bool isOutputLayer = i == layer_sizes.size() - 1;
-            Activation activation = isOutputLayer ? output_activation : hidden_activation;
+            bool is_output_layer = i == layer_sizes.size() - 1;
+            Activation activation = is_output_layer ? output_activation : hidden_activation;
 
-            m_layers.emplace_back(m_batchSize, node_count, previous_count, activation);
-            m_context.randomise(m_layers.back().weights, weight_min, weight_max);
-            m_layers.back().biases.zero();
+            // m_layers.emplace_back(m_batchSize, node_count, previous_count, activation);
+            m_layers.push_back(std::make_unique<Layer_t>(m_batchSize, node_count, previous_count, activation));
+            m_context.randomise(m_layers.back()->weights, weight_min, weight_max);
+            m_layers.back()->biases.zero();
 
             previous_count = node_count;
         }

@@ -11,46 +11,46 @@ namespace mlp {
         class Context {
             public:
 
-            using Matrix = host::Matrix;
+            using Matrix_t = Matrix;
 
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
 
-            void transfer(const Matrix& src, float* dest) const;
-            void transfer(const float* src, Matrix& dest) const;
-            void transfer(const Matrix& src, Matrix& dest) const;
+            void transfer(const Matrix_t& src, float* dest) const;
+            void transfer(const float* src, Matrix_t& dest) const;
+            void transfer(const Matrix_t& src, Matrix_t& dest) const;
 
-            void randomise(Matrix& matrix, float min, float max) const;
+            void randomise(Matrix_t& matrix, float min, float max) const;
 
-            void softmax(const Matrix& inputs, Matrix& outputs) const;
+            void softmax(const Matrix_t& inputs, Matrix_t& outputs) const;
 
             void propagate(
-                const Matrix& last_activations,
-                Matrix& logits, Matrix& activations,
-                const Matrix& weights, const Matrix& biases,
+                const Matrix_t& last_activations,
+                Matrix_t& logits, Matrix_t& activations,
+                const Matrix_t& weights, const Matrix_t& biases,
                 const Activation activation
             ) const;
 
             void computeOutputGradients(
-                const Matrix& last_activations, const Matrix& activations, const Matrix& weights,
+                const Matrix_t& last_activations, const Matrix_t& activations, const Matrix_t& weights,
                 const size_t n_last_activations,
                 const std::vector<int>& labels,
                 const Activation activation, const Loss loss,
-                Matrix& gradients, Matrix& dC_da_next
+                Matrix_t& gradients, Matrix_t& dC_da_next
             ) const; // output layer
 
             void computeGradients(
-                const Matrix& dC_da,
-                const Matrix& left_activations, const Matrix& right_activations,
-                const Matrix& weights,
+                const Matrix_t& dC_da,
+                const Matrix_t& left_activations, const Matrix_t& right_activations,
+                const Matrix_t& weights,
                 const Activation activation,
-                Matrix& gradients, Matrix& dC_da_next
+                Matrix_t& gradients, Matrix_t& dC_da_next
             ) const; // hidden layers
 
-            void optimiseLayer(Matrix& weights, const Matrix& gradients, const float learning_rate) const;
+            void optimiseLayer(Matrix_t& weights, const Matrix_t& gradients, const float learning_rate) const;
 
-            void checkOutputs(const Matrix& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix& correct, Matrix& classifications) const;
+            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix_t& correct, Matrix_t& classifications) const;
 
-            void computeLoss(const Matrix& outputs, const Matrix& targets, Matrix& result, const Loss loss) const;
+            void computeLoss(const Matrix_t& outputs, const Matrix_t& targets, Matrix_t& result, const Loss loss) const;
 
             inline void synchronise() const {}
 

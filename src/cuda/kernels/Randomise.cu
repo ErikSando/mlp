@@ -23,7 +23,7 @@ namespace mlp {
             M[index] = curand_uniform(&states[index]) * (max - min) + min;
         }
 
-        void Context::randomise(Matrix& matrix, float min, float max) const {
+        void Context::randomise(Matrix_t& matrix, float min, float max) const {
             cudaError_t err;
 
             unsigned int grid_size = block_count(matrix.size(), BLOCK_SIZE);

@@ -4,7 +4,7 @@
 
 namespace mlp {
     namespace host {
-        void Context::randomise(Matrix& matrix, float min, float max) const {
+        void Context::randomise(Matrix_t& matrix, float min, float max) const {
             std::random_device rd;
             std::mt19937 gen(rd());
             std::uniform_real_distribution<float> dist(min, max);

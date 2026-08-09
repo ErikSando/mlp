@@ -12,7 +12,7 @@ namespace mlp {
             result[batch] = -logf(outputs[batch * classes + index]);
         }
 
-        void Context::computeLoss(const Matrix& outputs, const Matrix& targets, Matrix& result, const Loss loss) const {
+        void Context::computeLoss(const Matrix_t& outputs, const Matrix_t& targets, Matrix_t& result, const Loss loss) const {
             assert(outputs.size() == targets.size());
             assert(outputs.rows() == targets.rows());
             assert(outputs.columns() == targets.columns());

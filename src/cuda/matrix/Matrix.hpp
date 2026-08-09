@@ -11,11 +11,11 @@ namespace mlp {
             Matrix(size_t rows, size_t columns);
             ~Matrix();
 
-            Matrix(const Matrix&) = delete;
-            Matrix& operator=(const Matrix&) = delete;
+            // Matrix(const Matrix&) = delete;
+            // Matrix& operator=(const Matrix&) = delete;
 
-            Matrix(Matrix&& other) noexcept;
-            Matrix& operator=(Matrix&& other) noexcept;
+            // Matrix(Matrix&& other) noexcept;
+            // Matrix& operator=(Matrix&& other) noexcept;
 
             void zero();
 

@@ -1,10 +1,10 @@
 #pragma once
 
+#include <memory>
+
 #include "data/Batch.hpp"
 #include "enums/Enums.hpp"
 #include "mlp/Layer.hpp"
-
-// things are very experimental right now
 
 namespace mlp {
     constexpr float UNDEFINED_CLASS = -1;
@@ -17,7 +17,8 @@ namespace mlp {
 
     template<typename TContext>
     class MLP {
-        using Matrix = typename TContext::Matrix;
+        using Matrix_t = typename TContext::Matrix_t;
+        using Layer_t = Layer<TContext>;
 
         public:
 
@@ -48,7 +49,7 @@ namespace mlp {
         // ^^^ use a safer method in the future, the size of host_outputs isnt enforced right now
 
         // Check the number of correct classifications out of the given number of samples
-        void checkOutputs(const std::vector<int>& labels, const size_t n_samples, Matrix& correct, Matrix& classifications);
+        void checkOutputs(const std::vector<int>& labels, const size_t n_samples, Matrix_t& correct, Matrix_t& classifications);
 
         size_t getInputCount() { return m_layers[0].logits.columns(); }
         constexpr size_t getBatchSize() { return m_batchSize; }
@@ -58,7 +59,9 @@ namespace mlp {
 
         private:
 
-        std::vector<Layer<TContext>> m_layers; // includes all layers: input, hidden, output
+        // std::vector<Layer<TContext>> m_layers; // includes all layers: input, hidden, output
+
+        std::vector<std::unique_ptr<Layer_t>> m_layers;
 
         TContext& m_context;
         size_t m_batchSize;

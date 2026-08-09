@@ -11,7 +11,7 @@ namespace mlp {
         void print_sample(const ImageData& sample);
 
         template<typename TContext>
-        void classify_sample(MLP<TContext> model, const ImageData& image_data, const int label = NO_LABEL) {
+        void classify_sample(MLP<TContext>& model, const ImageData& image_data, const int label = NO_LABEL) {
             Sample sample(image_data.data.size());
             sample.label = label;
 

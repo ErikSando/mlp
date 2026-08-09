@@ -85,7 +85,7 @@ namespace mlp {
         }
 
         void Context::propagate(
-            const Matrix& inputs, Matrix& logits, Matrix& activations, const Matrix& weights, const Matrix& biases, const Activation activation
+            const Matrix_t& inputs, Matrix_t& logits, Matrix_t& activations, const Matrix_t& weights, const Matrix_t& biases, const Activation activation
         ) const {
             assert(inputs.columns() == weights.rows());
             assert(activations.rows() == inputs.rows());

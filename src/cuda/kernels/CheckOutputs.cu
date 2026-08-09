@@ -64,7 +64,7 @@ namespace mlp {
             }
         }
 
-        void Context::checkOutputs(const Matrix& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix& correct, Matrix& classifications) const {
+        void Context::checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix_t& correct, Matrix_t& classifications) const {
             assert(outputs.rows() == labels.size());
             assert(n_samples <= labels.size());
 

@@ -42,7 +42,7 @@ namespace mlp {
         // test_dataset.parseBatch(batch);
         mnist_train_ds.parseBatch(batch);
 
-        mlp::MLP<host::Context> model(host_context); // there is a problem with the CUDA context right now (possibly something to do with Layer or Matrix deletion/copying/moving idk)
+        mlp::MLP<cuda::Context> model(cuda_context); // there is a problem with the CUDA context right now (possibly something to do with Layer or Matrix deletion/copying/moving idk)
         model.init(layer_sizes, BATCH_SIZE);
 
         // model.forwardPass(batch);

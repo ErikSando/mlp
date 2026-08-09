@@ -155,11 +155,11 @@ namespace mlp {
         }
 
         void Context::computeGradients(
-            const Matrix& dC_da,
-            const Matrix& left_activations, const Matrix& right_activations,
-            const Matrix& weights,
+            const Matrix_t& dC_da,
+            const Matrix_t& left_activations, const Matrix_t& right_activations,
+            const Matrix_t& weights,
             const Activation activation,
-            Matrix& gradients, Matrix& dC_da_next
+            Matrix_t& gradients, Matrix_t& dC_da_next
         ) const {
             assert(left_activations.rows() == right_activations.rows());
             assert(dC_da.rows() == right_activations.rows());
@@ -188,11 +188,11 @@ namespace mlp {
         }
 
         void Context::computeOutputGradients(
-            const Matrix& last_hidden_activations, const Matrix& output_activations, const Matrix& weights,
+            const Matrix_t& last_hidden_activations, const Matrix_t& output_activations, const Matrix_t& weights,
             const size_t n_last_activations,
             const std::vector<int>& labels,
             const Activation activation, const Loss loss,
-            Matrix& gradients, Matrix& dC_da_hidden
+            Matrix_t& gradients, Matrix_t& dC_da_hidden
         ) const {
             cudaError_t err;
 
@@ -215,7 +215,7 @@ namespace mlp {
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute output layer gradients error: ");
         }
 
-        void Context::optimiseLayer(Matrix& weights, const Matrix& gradients, const float learning_rate) const {
+        void Context::optimiseLayer(Matrix_t& weights, const Matrix_t& gradients, const float learning_rate) const {
             assert(weights.size() == gradients.size());
 
             cudaError_t err;

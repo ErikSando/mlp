@@ -8,7 +8,7 @@
 namespace mlp {
     template<typename TContext>
     void MLP<TContext>::classify(const Sample& sample, ClassifyInfo& info) {
-        size_t n_inputs = m_layers[0].activations.columns();
+        size_t n_inputs = m_layers[0]->activations.columns();
 
         assert(sample.data.size() == n_inputs);
 
@@ -19,7 +19,8 @@ namespace mlp {
 
         forwardPass(batch);
 
-        size_t n_outputs = m_layers.back().activations.size();
+        size_t n_classes = m_layers.back()->activations.columns();
+        size_t n_outputs = m_layers.back()->activations.size();
 
         float* outputs = new float[n_outputs];
         copyOutputs(outputs);
@@ -47,11 +48,11 @@ namespace mlp {
 
         float* host_results = new float[m_batchSize];
 
-        Matrix targets(m_batchSize, n_outputs);
-        Matrix results(m_batchSize, 1);
+        Matrix_t targets(m_batchSize, n_classes);
+        Matrix_t results(m_batchSize, 1);
 
         m_context.transfer(host_targets, targets);
-        m_context.computeLoss(m_layers.back().activations, targets, results, m_lossFunction);
+        m_context.computeLoss(m_layers.back()->activations, targets, results, m_lossFunction);
         m_context.transfer(results, host_results);
 
         info.error = host_results[0];

@@ -40,10 +40,6 @@ namespace mlp {
         void forwardPass(const Batch& batch);
         void backwardPass(const Batch& batch);
 
-        // im thinking the forward pass function will have no return type and pass the values through the network
-        // and the output values can be read using another function
-        // i think this makes sense considering the node values are on the GPU anyway
-
         // Copy the values of the output nodes into the given host memory location
         void copyOutputs(float* host_outputs);
         // ^^^ use a safer method in the future, the size of host_outputs isnt enforced right now
@@ -58,8 +54,6 @@ namespace mlp {
         void setLearningRate(float learning_rate) { m_learningRate = learning_rate; }
 
         private:
-
-        // std::vector<Layer<TContext>> m_layers; // includes all layers: input, hidden, output
 
         std::vector<std::unique_ptr<Layer_t>> m_layers;
 

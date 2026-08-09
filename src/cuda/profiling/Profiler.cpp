@@ -26,8 +26,6 @@ namespace mlp {
             float total = 0.0f;
 
             for (auto& task : m_tasks) {
-                // const char* name = task.getName();
-                // size_t name_len = std::strlen(name);
                 float duration = task->getDuration();
 
                 std::cout << task->getName() << ": " << duration << " ms\n";

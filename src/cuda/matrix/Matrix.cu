@@ -15,28 +15,6 @@ namespace mlp {
             cudaFree(m_data);
         }
 
-        // Matrix::Matrix(Matrix&& other) noexcept
-        // : m_rows(other.m_rows), m_cols(other.m_cols), m_size(other.m_size), m_data(other.m_data)
-        // {
-        //     other.m_data = nullptr;
-        // }
-
-        // Matrix& Matrix::operator=(Matrix&& other) noexcept {
-        //     if (this != &other) {
-        //         cudaFree(m_data);
-
-        //         m_size = other.m_size;
-        //         m_rows = other.m_rows;
-        //         m_cols = other.m_cols;
-        //         m_data = other.m_data;
-
-        //         m_data = other.m_data;
-        //         other.m_data = nullptr;
-        //     }
-
-        //     return *this;
-        // }
-
         void Matrix::zero() {
             cudaError_t err = cudaMemset(m_data, 0, m_size * sizeof(float));
             if (err != cudaSuccess) throw std::runtime_error(cudaGetErrorString(err));

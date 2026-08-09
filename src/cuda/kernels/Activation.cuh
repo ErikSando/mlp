@@ -4,6 +4,8 @@
 
 namespace mlp {
     namespace cuda {
+        constexpr float NO_DERIVATIVE = 1000000.0f;
+
         struct NoActivation {
             __device__ static float activate(float z) {
                 return z;
@@ -39,6 +41,16 @@ namespace mlp {
 
             __device__ static float derivative(float z) {
                 return z >= 0.0f ? 1.0f : 0.01f;
+            }
+        };
+
+        struct Softmax {
+            __device__ static float derivative(float z) {
+                return NO_DERIVATIVE;
+            }
+
+            __device__ static float derivative_from_a(float a) {
+                return a * (1 - a);
             }
         };
     }

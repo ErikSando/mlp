@@ -23,6 +23,10 @@ namespace mlp {
 
             std::cout << "Classification:   " << info.classification << "\n";
 
+            for (size_t i = 0; i < info.outputs.size(); i++) {
+                std::cout << i << ": " << info.outputs[i] << "\n";
+            }
+
             if (info.error == UNDEFINED_ERROR) return;
 
             std::cout << "Error/loss:       " << info.error << "\n";

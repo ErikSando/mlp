@@ -30,14 +30,6 @@ namespace mlp {
                 const Activation activation
             ) const;
 
-            void computeOutputGradients(
-                const Matrix_t& last_activations, const Matrix_t& activations, const Matrix_t& weights,
-                const size_t n_last_activations,
-                const std::vector<int>& labels,
-                const Activation activation, const Loss loss,
-                Matrix_t& gradients, Matrix_t& dC_da_next
-            ) const; // output layer
-
             void computeGradients(
                 const Matrix_t& dC_da,
                 const Matrix_t& left_activations, const Matrix_t& right_activations,
@@ -45,6 +37,14 @@ namespace mlp {
                 const Activation activation,
                 Matrix_t& gradients, Matrix_t& dC_da_next
             ) const; // hidden layers
+
+            void computeOutputGradients(
+                const Matrix_t& last_hidden_activations, const Matrix_t& output_activations,
+                const Matrix_t& weights,
+                const std::vector<int>& labels,
+                const Activation activation, const Loss loss,
+                Matrix_t& gradients, Matrix_t& dC_da_hidden
+            ) const; // output layer
 
             void optimiseLayer(Matrix_t& weights, const Matrix_t& gradients, const float learning_rate) const;
 

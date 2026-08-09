@@ -146,10 +146,10 @@ namespace mlp {
             atomicAdd(&gradients[weight_index], dC_dw_output / batch_size);
         }
 
-        __global__ void optimise_layer_kernel(float* weights, const float* gradients, const size_t n_weights, const float learning_rate) {
+        __global__ void optimise_layer_kernel(float* weights, const float* gradients, const size_t size, const float learning_rate) {
             unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-            if (index >= n_weights) return;
+            if (index >= size) return;
 
             weights[index] -= gradients[index] * learning_rate;
         }
@@ -162,8 +162,10 @@ namespace mlp {
             Matrix_t& gradients, Matrix_t& dC_da_next
         ) const {
             assert(left_activations.rows() == right_activations.rows());
-            assert(dC_da.rows() == right_activations.rows());
-            assert(dC_da.columns() == right_activations.columns());
+            assert(weights.size() == left_activations.columns() * right_activations.columns());
+            assert(dC_da.size() == right_activations.size());
+            assert(dC_da_next.size() == left_activations.size());
+            assert(gradients.size() == weights.size());
 
             cudaError_t err;
 
@@ -174,6 +176,9 @@ namespace mlp {
                 block_count(right_activations.columns(), block.y),
                 block_count(right_activations.rows(), block.z)
             );
+
+            err = cudaGetLastError();
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA error before hidden layer gradients: ");
 
             compute_hidden_gradients_kernel<LeakyReLU><<<grid, block>>>(
                 dC_da.data(),
@@ -189,24 +194,28 @@ namespace mlp {
 
         void Context::computeOutputGradients(
             const Matrix_t& last_hidden_activations, const Matrix_t& output_activations, const Matrix_t& weights,
-            const size_t n_last_activations,
             const std::vector<int>& labels,
             const Activation activation, const Loss loss,
             Matrix_t& gradients, Matrix_t& dC_da_hidden
         ) const {
+            assert(last_hidden_activations.rows() == output_activations.rows());
+            assert(weights.size() == last_hidden_activations.columns() * output_activations.columns());
+            assert(dC_da_hidden.size() == last_hidden_activations.size());
+            assert(gradients.size() == weights.size());
+
             cudaError_t err;
 
             dim3 block(8, 8, 8);
 
             dim3 grid(
-                block_count(n_last_activations, block.x),
+                block_count(last_hidden_activations.columns(), block.x),
                 block_count(output_activations.columns(), block.y),
                 block_count(output_activations.rows(), block.z)
             );
 
-            compute_output_gradients_kernel<LeakyReLU, CCE><<<grid, block>>>(
+            compute_output_gradients_kernel<Softmax, CCE><<<grid, block>>>(
                 last_hidden_activations.data(), output_activations.data(), weights.data(),
-                output_activations.columns(), n_last_activations, output_activations.rows(),
+                output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
                 labels.data(),
                 gradients.data(), dC_da_hidden.data()
             );

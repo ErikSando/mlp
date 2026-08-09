@@ -25,10 +25,13 @@ namespace mlp {
         float* outputs = new float[n_outputs];
         copyOutputs(outputs);
 
+        info.outputs.resize(n_classes);
+        std::memcpy(info.outputs.data(), outputs, n_classes * sizeof(float));
+
         int classification = UNDEFINED_CLASS;
         float max_value = 0.0f;
 
-        for (size_t i = 0; i < n_outputs; i++) {
+        for (size_t i = 0; i < n_classes; i++) {
             if (outputs[i] > max_value) {
                 max_value = outputs[i];
                 classification = i;

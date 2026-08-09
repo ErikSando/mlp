@@ -44,8 +44,24 @@ namespace mlp {
 
         mlp::MLP<cuda::Context> model(cuda_context); // there is a problem with the CUDA context right now (possibly something to do with Layer or Matrix deletion/copying/moving idk)
         model.init(layer_sizes, BATCH_SIZE);
+        model.setLearningRate(0.05f);
 
         // model.forwardPass(batch);
+
+        std::cout << "backward passing...\n";
+
+        host_profiler.startTask("Backward passes");
+
+        for (size_t i = 0; i < 2187; i++) {
+            mnist_train_ds.parseBatch(batch);
+            model.forwardPass(batch);
+            model.backwardPass(batch);
+        }
+
+        cuda_context.synchronise();
+
+        host_profiler.endTask();
+        host_profiler.print();
 
         std::string command;
 

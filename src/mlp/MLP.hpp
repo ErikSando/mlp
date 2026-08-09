@@ -13,6 +13,7 @@ namespace mlp {
     struct ClassifyInfo {
         int classification = UNDEFINED_CLASS;
         float error = UNDEFINED_ERROR;
+        std::vector<float> outputs;
     };
 
     template<typename TContext>

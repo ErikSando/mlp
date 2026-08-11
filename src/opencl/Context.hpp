@@ -1,31 +1,20 @@
 #pragma once
 
-#if !defined(RANDOM_BS)
+#if !defined(RANDOM_BS) // using this just so intellisense leaves me alone
 #define MLP_CUDA
 #endif
 
-#if defined(MLP_CUDA)
+#if defined(MLP_OPENCL)
 
 #include <cassert>
 #include <iostream>
 
-#include "cuda/matrix/Matrix.hpp"
-#include "cuda/profiling/Profiler.hpp"
+#include "opencl/matrix/Matrix.hpp"
+#include "opencl/profiling/Profiler.hpp"
 #include "enums/Enums.hpp"
 
-#define CUDA_ERROR(err, message)\
-    do {\
-        std::cout << "\033[31m" << "[Error]\033[0m "\
-                  << message\
-                  << cudaGetErrorString(err) << '\n'\
-                  << "File: " << __FILE__ << '\n'\
-                  << "Line: " << __LINE__ << '\n'\
-                  << "Function: " << __func__ << '\n';\
-        std::abort();\
-    } while (0)
-
 namespace mlp {
-    namespace cuda {
+    namespace opencl {
         constexpr unsigned int TILE_SIZE = 32;
         constexpr unsigned int BLOCK_SIZE = 256;
 
@@ -90,10 +79,7 @@ namespace mlp {
 
             void computeLoss(const Matrix_t& outputs, const Matrix_t& targets, Matrix_t& result, const Loss loss) const;
 
-            inline void synchronise() const {
-                cudaError_t err = cudaDeviceSynchronize();
-                if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
-            }
+            // probably need something equivalent to cuda device synchronise
 
             private:
 

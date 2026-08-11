@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <random>
 #include <string>
@@ -5,12 +6,8 @@
 
 #include "cli/CLI.hpp"
 #include "cli/Commands.hpp"
-#include "cuda/Context.hpp"
-#include "cuda/profiling/Profiler.hpp"
 #include "data/Dataset.hpp"
 #include "data/ParseSample.hpp"
-#include "host/Context.hpp"
-#include "host/profiling/Profiler.hpp"
 #include "mlp/MLP.hpp"
 
 namespace mlp {
@@ -26,42 +23,39 @@ namespace mlp {
         mlp::Dataset mnist_train_ds("res/mnist/mnist_train.csv");
         mlp::Dataset mnist_test_ds("res/mnist/mnist_test.csv");
 
-        mlp::cuda::Profiler cuda_profiler;
-        mlp::host::Profiler host_profiler;
+        mlp::Dataset test_ds("res/testing/test_data_2.csv");
 
-        mlp::cuda::Context cuda_context(&cuda_profiler);
-        mlp::host::Context host_context(&host_profiler);
+        mlp::Profiler profiler;
 
-        constexpr size_t BATCH_SIZE = 32;
+        mlp::Context context(&profiler);
 
-        std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
-        // std::vector<size_t> layer_sizes = { 4, 4, 4 };
+        constexpr size_t BATCH_SIZE = 1;
+
+        // std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
+        std::vector<size_t> layer_sizes = { 4, 4, 4 };
 
         mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
-        // train_dataset.parseBatch(batch);
-        // test_dataset.parseBatch(batch);
-        mnist_train_ds.parseBatch(batch);
+        // mnist_train_ds.parseBatch(batch);
+        test_ds.parseBatch(batch);
 
-        mlp::MLP<cuda::Context> model(cuda_context); // there is a problem with the CUDA context right now (possibly something to do with Layer or Matrix deletion/copying/moving idk)
+        mlp::MLP_t model(context); // there is a problem with the CUDA context right now (possibly something to do with Layer or Matrix deletion/copying/moving idk)
         model.init(layer_sizes, BATCH_SIZE);
-        model.setLearningRate(0.05f);
+        // model.setLearningRate(0.05f);
 
         // model.forwardPass(batch);
 
+        // to do: verify gradient computations for a small network
+
         std::cout << "backward passing...\n";
 
-        host_profiler.startTask("Backward passes");
-
-        for (size_t i = 0; i < 2187; i++) {
-            mnist_train_ds.parseBatch(batch);
+        for (size_t i = 0; i < 100; i++) {
+            // mnist_train_ds.parseBatch(batch);
+            test_ds.parseBatch(batch);
             model.forwardPass(batch);
             model.backwardPass(batch);
         }
 
-        cuda_context.synchronise();
-
-        host_profiler.endTask();
-        host_profiler.print();
+        context.synchronise();
 
         std::string command;
 

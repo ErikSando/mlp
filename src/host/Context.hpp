@@ -1,5 +1,11 @@
 #pragma once
 
+#if !defined(RANDOM_BS) // using this just so intellisense leaves me alone
+#define MLP_HOST
+#endif
+
+#if defined(MLP_HOST)
+
 #include <cassert>
 
 #include "enums/Enums.hpp"
@@ -60,3 +66,5 @@ namespace mlp {
         };
     }
 }
+
+#endif

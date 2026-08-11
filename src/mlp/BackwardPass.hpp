@@ -48,40 +48,40 @@ namespace mlp {
             m_context.optimiseLayer(layer->weights, grads, m_learningRate);
         }
 
-        // std::cout << "input layer\n";
+        std::cout << "input layer\n";
 
-        // float* inputs = new float[m_layers[0]->activations.size()];
-        // m_context.transfer(m_layers[0]->activations, inputs);
+        float* inputs = new float[m_layers[0]->activations.size()];
+        m_context.transfer(m_layers[0]->activations, inputs);
 
-        // for (size_t i = 0; i < m_layers[0]->activations.size(); i++) {
-        //     std::cout << "  " << inputs[i];
-        // }
-        // std::cout << "\n";
+        for (size_t i = 0; i < m_layers[0]->activations.size(); i++) {
+            std::cout << "  " << inputs[i];
+        }
+        std::cout << "\n";
 
-        // delete[] inputs;
+        delete[] inputs;
 
-        // std::cout << "hidden layer 1\n";
+        std::cout << "hidden layer 1\n";
 
-        // float* h1_activations = new float[m_layers[1]->activations.size()];
-        // m_context.transfer(m_layers[1]->activations, h1_activations);
+        float* h1_activations = new float[m_layers[1]->activations.size()];
+        m_context.transfer(m_layers[1]->activations, h1_activations);
 
-        // for (size_t i = 0; i < m_layers[1]->activations.size(); i++) {
-        //     std::cout << "  " << h1_activations[i];
-        // }
-        // std::cout << "\n";
+        for (size_t i = 0; i < m_layers[1]->activations.size(); i++) {
+            std::cout << "  " << h1_activations[i];
+        }
+        std::cout << "\n";
 
-        // delete[] h1_activations;
+        delete[] h1_activations;
 
-        // std::cout << "output layer\n";
+        std::cout << "output layer\n";
 
-        // float* out_activations = new float[m_layers[2]->activations.size()];
-        // m_context.transfer(m_layers[2]->activations, out_activations);
+        float* out_activations = new float[m_layers[2]->activations.size()];
+        m_context.transfer(m_layers[2]->activations, out_activations);
 
-        // for (size_t i = 0; i < m_layers[2]->activations.size(); i++) {
-        //     std::cout << "  " << out_activations[i];
-        // }
-        // std::cout << "\n";
+        for (size_t i = 0; i < m_layers[2]->activations.size(); i++) {
+            std::cout << "  " << out_activations[i];
+        }
+        std::cout << "\n";
 
-        // delete[] out_activations;
+        delete[] out_activations;
     }
 }

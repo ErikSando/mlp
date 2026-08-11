@@ -27,11 +27,6 @@ namespace mlp {
 
         size_t previous_count = node_count;
 
-        // using an equal seed to test that cuda and host contexts give the same results
-        constexpr unsigned int SEED = 1234567890;
-        std::mt19937 gen(SEED);
-        std::uniform_real_distribution<float> distrib(weight_min, weight_max);
-
         for (size_t i = 1; i < layer_sizes.size(); i++) {
             size_t node_count = layer_sizes[i];
 
@@ -39,12 +34,14 @@ namespace mlp {
             Activation activation = is_output_layer ? output_activation : hidden_activation;
 
             m_layers.push_back(std::make_unique<Layer_t>(m_batchSize, node_count, previous_count, activation));
-            // m_context.randomise(m_layers.back()->weights, weight_min, weight_max);
+            m_context.randomise(m_layers.back()->weights, weight_min, weight_max);
             m_layers.back()->biases.zero();
 
+            float weight = 0.1f;
             float* weights = new float[m_layers.back()->weights.size()];
             for (size_t i = 0; i < m_layers.back()->weights.size(); i++) {
-                weights[i] = distrib(gen);
+                weights[i] = weight;
+                weight += 0.1f;
             }
             m_context.transfer(weights, m_layers.back()->weights);
 

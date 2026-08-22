@@ -21,9 +21,9 @@ namespace mlp {
 
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
 
-            void transfer(const Matrix_t& src, float* dest) const;
-            void transfer(const float* src, Matrix_t& dest) const;
-            void transfer(const Matrix_t& src, Matrix_t& dest) const;
+            void transfer(float* dest, const Matrix_t& src) const;
+            void transfer(Matrix_t& dest, const float* src) const;
+            void transfer(Matrix_t& dest, const Matrix_t& src) const;
 
             void randomise(Matrix_t& matrix, float min, float max) const;
 

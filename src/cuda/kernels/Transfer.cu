@@ -6,7 +6,7 @@
 
 namespace mlp {
     namespace cuda {
-        void Context::transfer(const Matrix_t& src, float* dest) const {
+        void Context::transfer(float* dest, const Matrix_t& src) const {
             synchronise();
 
             TaskID task;
@@ -18,7 +18,7 @@ namespace mlp {
             if (m_profiler) m_profiler->endTask(task);
         }
 
-        void Context::transfer(const float* src, Matrix_t& dest) const {
+        void Context::transfer(Matrix_t& dest, const float* src) const {
             TaskID task;
             if (m_profiler) task = m_profiler->startTask("Upload");
 
@@ -28,7 +28,7 @@ namespace mlp {
             if (m_profiler) m_profiler->endTask(task);
         }
 
-        void Context::transfer(const Matrix_t& src, Matrix_t& dest) const {
+        void Context::transfer(Matrix_t& dest, const Matrix_t& src) const {
             TaskID task;
             if (m_profiler) task = m_profiler->startTask("Upload");
 

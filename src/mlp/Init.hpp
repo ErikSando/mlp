@@ -37,13 +37,13 @@ namespace mlp {
             m_context.randomise(m_layers.back()->weights, weight_min, weight_max);
             m_layers.back()->biases.zero();
 
-            float weight = 0.1f;
-            float* weights = new float[m_layers.back()->weights.size()];
-            for (size_t i = 0; i < m_layers.back()->weights.size(); i++) {
-                weights[i] = weight;
-                weight += 0.1f;
-            }
-            m_context.transfer(weights, m_layers.back()->weights);
+            // int weight = 1;
+            // float* weights = new float[m_layers.back()->weights.size()];
+            // for (size_t i = 0; i < m_layers.back()->weights.size(); i++) {
+            //     weights[i] = (float) weight / 10.0f;
+            //     weight = weight % 4 + 1;
+            // }
+            // m_context.transfer(m_layers.back()->weights, weights);
 
             previous_count = node_count;
         }

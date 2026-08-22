@@ -32,30 +32,30 @@ namespace mlp {
         constexpr size_t BATCH_SIZE = 1;
 
         // std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
-        std::vector<size_t> layer_sizes = { 4, 4, 4 };
+        std::vector<size_t> layer_sizes = { 4, 8, 4 };
 
-        mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
-        // mnist_train_ds.parseBatch(batch);
-        test_ds.parseBatch(batch);
-
-        mlp::MLP_t model(context); // there is a problem with the CUDA context right now (possibly something to do with Layer or Matrix deletion/copying/moving idk)
+        mlp::MLP_t model(context);
         model.init(layer_sizes, BATCH_SIZE);
         // model.setLearningRate(0.05f);
 
-        // model.forwardPass(batch);
-
-        // to do: verify gradient computations for a small network
+        mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
+        // mnist_train_ds.parseBatch(batch);
+        // test_ds.parseBatch(batch);
 
         std::cout << "backward passing...\n";
 
-        for (size_t i = 0; i < 100; i++) {
+        for (size_t i = 0; i < 10000; i++) {
             // mnist_train_ds.parseBatch(batch);
             test_ds.parseBatch(batch);
             model.forwardPass(batch);
             model.backwardPass(batch);
         }
 
+        std::cout << "synchronising...\n";
+
         context.synchronise();
+
+        std::cout << "done.\n";
 
         std::string command;
 

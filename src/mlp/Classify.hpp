@@ -54,9 +54,9 @@ namespace mlp {
         Matrix_t targets(m_batchSize, n_classes);
         Matrix_t results(m_batchSize, 1);
 
-        m_context.transfer(host_targets, targets);
+        m_context.transfer(targets, host_targets);
         m_context.computeLoss(m_layers.back()->activations, targets, results, m_lossFunction);
-        m_context.transfer(results, host_results);
+        m_context.transfer(host_results, results);
 
         info.error = host_results[0];
 

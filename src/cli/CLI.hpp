@@ -13,14 +13,17 @@
 
 namespace mlp {
     #if defined(MLP_CUDA)
+    using Matrix = cuda::Matrix;
     using Context = cuda::Context;
     using Profiler = cuda::Profiler;
     using MLP_t = MLP<Context>;
     #elif defined(MLP_OPENCL)
+    using Matrix = opencl::Matrix;
     using Context = opencl::Context;
     using Profiler = opencl::Profiler;
     using MLP_t = MLP<Context>;
     #elif defined(MLP_HOST)
+    using Matrix = host::Matrix;
     using Context = host::Context;
     using Profiler = host::Profiler;
     using MLP_t = MLP<Context>;

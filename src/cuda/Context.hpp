@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined(RANDOM_BS)
+#if !defined(RANDOM_BS) // using this just so intellisense leaves me alone
 #define MLP_CUDA
 #endif
 
@@ -41,12 +41,13 @@ namespace mlp {
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
 
             // Transfer data from device memory to host memory
-            void transfer(const Matrix_t& src, float* dest) const;
+            void transfer(float* dest, const Matrix_t& src) const;
 
             // Transfer data from host memory to device memory
-            void transfer(const float* src, Matrix_t& dest) const;
+            void transfer(Matrix_t& dest, const float* src) const;
 
-            void transfer(const Matrix_t& src, Matrix_t& dest) const;
+            // Copy data on device memory to another location in device memory
+            void transfer(Matrix_t& dest, const Matrix_t& src) const;
 
             // Randomise each value in the Matrix_t to a value between min and max
             void randomise(Matrix_t& Matrix_t, float min, float max) const;

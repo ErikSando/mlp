@@ -39,6 +39,13 @@ namespace mlp {
         }
 
         m_fileSize = static_cast<size_t>(position);
+
+        // remove trailing newlines
+        while (!m_lineIndices.empty() && m_lineIndices.back() == m_fileSize) {
+            m_lineIndices.pop_back();
+            m_fileSize--;
+        }
+
         m_totalLines = m_lineIndices.size();
     }
 

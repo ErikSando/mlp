@@ -1,7 +1,7 @@
 #pragma once
 
 #if !defined(RANDOM_BS) // using this just so intellisense leaves me alone
-#define MLP_CUDA
+#define MLP_OPENCL
 #endif
 
 #if defined(MLP_OPENCL)

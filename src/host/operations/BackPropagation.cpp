@@ -60,6 +60,12 @@ namespace mlp {
 
                         float dz_output_da_hidden = weights[weight_index]; // dz_L/da_L-1 = w_L
 
+                        // std::cout << "================\n";
+                        // std::cout << "a = " << a_output << " ; ah = " << a_hidden << "\n";
+                        // std::cout << "w = " << weights[weight_index] << "\n";
+                        // std::cout << "dC/dz = " << dC_dz_output << " ; dC/dw = " << dC_dw_output << "\n";
+                        // std::cout << "dz/dah = " << dz_output_da_hidden << " ; dC/dah = " << dC_dz_output << " * " << dz_output_da_hidden << "\n";
+
                         float dC_da_hidden = dC_dz_output * dz_output_da_hidden;
 
                         dC_da_hidden_list[batch * n_hidden + hidden_index] += dC_da_hidden;
@@ -98,7 +104,13 @@ namespace mlp {
                 break;
 
                 case Activation::RELU:
-
+                    compute_hidden_gradients<ReLU>(
+                        dC_da.data(),
+                        left_activations.data(), right_activations.data(),
+                        weights.data(),
+                        left_activations.columns(), right_activations.columns(), left_activations.rows(),
+                        gradients.data(), dC_da_next.data()
+                    );
                 break;
 
                 case Activation::LEAKY_RELU:
@@ -112,7 +124,13 @@ namespace mlp {
                 break;
 
                 default:
-
+                    compute_hidden_gradients<NoActivation>(
+                        dC_da.data(),
+                        left_activations.data(), right_activations.data(),
+                        weights.data(),
+                        left_activations.columns(), right_activations.columns(), left_activations.rows(),
+                        gradients.data(), dC_da_next.data()
+                    );
                 break;
             }
         }

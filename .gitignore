@@ -2,7 +2,6 @@ notes
 
 build/
 
-res/mnist/mnist_test.csv
-res/mnist/mnist_train.csv
+res/mnist/*.csv
 
 .vscode/

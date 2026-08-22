@@ -10,6 +10,10 @@ namespace mlp {
             static float activate(float z) {
                 return z;
             }
+
+            static float derivative(float z) {
+                return 1;
+            }
         };
 
         struct Sigmoid {
@@ -26,7 +30,8 @@ namespace mlp {
 
         struct ReLU {
             static float activate(float z) {
-                return fmaxf(0.0f, z);
+                return z >= 0.0f ? z : 0.0f; // i think this is faster than using fmaxf
+                // return fmaxf(0.0f, z);
             }
 
             static float derivative(float z) {

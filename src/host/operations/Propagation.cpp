@@ -12,14 +12,14 @@ namespace mlp {
             const float* weights, const float* biases,
             const size_t batch_size, const size_t input_count, const size_t output_count
         ) {
-            for (unsigned int batch = 0; batch < batch_size; batch++) {
+            for (unsigned int sample = 0; sample < batch_size; sample++) {
                 for (unsigned int output_column = 0; output_column < output_count; output_column++) {
-                    unsigned int output_index = batch * output_count + output_column;
+                    unsigned int output_index = sample * output_count + output_column;
 
                     logits[output_index] = biases[output_column];
 
                     for (unsigned int input_column = 0; input_column < input_count; input_column++) {
-                        unsigned int input_index = batch * input_count + input_column;
+                        unsigned int input_index = sample * input_count + input_column;
                         unsigned int weight_index = input_column * output_count + output_column;
 
                         assert(input_index < batch_size * input_count);

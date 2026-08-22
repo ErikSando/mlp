@@ -9,7 +9,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "opencl/matrix/Matrix.hpp"
+#include "opencl/memory/Matrix.hpp"
 #include "opencl/profiling/Profiler.hpp"
 #include "enums/Enums.hpp"
 
@@ -25,17 +25,18 @@ namespace mlp {
         class Context {
             public:
 
+            using Buffer_t = Buffer;
             using Matrix_t = Matrix;
 
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
 
-            // Transfer data from device memory to host memory
             void transfer(const Matrix_t& src, float* dest) const;
-
-            // Transfer data from host memory to device memory
             void transfer(const float* src, Matrix_t& dest) const;
-
             void transfer(const Matrix_t& src, Matrix_t& dest) const;
+
+            void transfer(void* dest, const Buffer_t& src) const;
+            void transfer(Buffer_t& dest, const void* src) const;
+            void transfer(Buffer_t& dest, const Buffer_t& src) const;
 
             // Randomise each value in the Matrix_t to a value between min and max
             void randomise(Matrix_t& Matrix_t, float min, float max) const;
@@ -75,7 +76,7 @@ namespace mlp {
 
             void optimiseLayer(Matrix_t& weights, const Matrix_t& gradients, const float learning_rate) const;
 
-            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix_t& correct, Matrix_t& classifications) const;
+            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, const size_t n_samples, Buffer_t& correct, Buffer_t& classifications) const;
 
             void computeLoss(const Matrix_t& outputs, const Matrix_t& targets, Matrix_t& result, const Loss loss) const;
 

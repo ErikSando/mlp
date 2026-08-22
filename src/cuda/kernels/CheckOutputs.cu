@@ -2,7 +2,7 @@
 
 namespace mlp {
     namespace cuda {
-        __global__ void check_outputs_kernel(const float* outputs, const int* labels, const size_t rows, const size_t cols, const size_t n_samples, float* correct, float* classifications) {
+        __global__ void check_outputs_kernel(const float* outputs, const int* labels, const size_t rows, const size_t cols, int* correct, int* classifications) {
             unsigned int row = blockIdx.x;
 
             if (row >= rows) return;
@@ -11,7 +11,7 @@ namespace mlp {
             unsigned int stride = blockDim.x;
 
             __shared__ float shared_probabilities[BLOCK_SIZE];
-            __shared__ int shared_digits[BLOCK_SIZE];
+            __shared__ int shared_classes[BLOCK_SIZE];
 
             float local_max = -__FLT_MAX__;
             int local_digit = -1;
@@ -26,7 +26,7 @@ namespace mlp {
             }
 
             shared_probabilities[tid] = local_max;
-            shared_digits[tid] = local_digit;
+            shared_classes[tid] = local_digit;
 
             __syncthreads();
 
@@ -38,17 +38,17 @@ namespace mlp {
                     float valueA = shared_probabilities[tid];
                     float valueB = shared_probabilities[tid + offset];
 
-                    int digitA = shared_digits[tid];
-                    int digitB = shared_digits[tid + offset];
+                    int digitA = shared_classes[tid];
+                    int digitB = shared_classes[tid + offset];
 
                     if (valueA >= valueB) {
                         shared_probabilities[tid] = valueA;
-                        shared_digits[tid] = digitA;
+                        shared_classes[tid] = digitA;
                         continue;
                     }
 
                     shared_probabilities[tid] = valueB;
-                    shared_digits[tid] = digitB;
+                    shared_classes[tid] = digitB;
                 }
 
                 __syncthreads();
@@ -56,21 +56,20 @@ namespace mlp {
 
             if (tid > 0) return;
 
-            const int classification = shared_digits[0];
-            classifications[row] = (float) classification;
+            const int classification = shared_classes[0];
+            classifications[row] = classification;
 
             if (classification == labels[row]) {
-                atomicAdd(correct, 1.0f);
+                atomicAdd(correct, 1);
             }
         }
 
-        void Context::checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix_t& correct, Matrix_t& classifications) const {
+        void Context::checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const {
             assert(outputs.rows() == labels.size());
-            assert(n_samples <= labels.size());
 
             cudaError_t err;
 
-            check_outputs_kernel<<<outputs.rows(), BLOCK_SIZE>>>(outputs.data(), labels.data(), outputs.rows(), outputs.columns(), n_samples, correct.data(), classifications.data());
+            check_outputs_kernel<<<outputs.rows(), BLOCK_SIZE>>>(outputs.data(), labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
 
             err = cudaGetLastError();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA check outputs error: ");

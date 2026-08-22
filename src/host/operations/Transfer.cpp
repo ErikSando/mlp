@@ -13,5 +13,17 @@ namespace mlp {
         void Context::transfer(Matrix_t& dest, const Matrix_t& src) const {
             std::memcpy(dest.data(), src.data(), dest.size() * sizeof(float));
         }
+
+        void Context::transfer(Buffer_t& dest, const void* src) const {
+            std::memcpy(dest.data(), src, dest.size());
+        }
+
+        void Context::transfer(void* dest, const Buffer_t& src) const {
+            std::memcpy(dest, src.data(), src.size());
+        }
+
+        void Context::transfer(Buffer_t& dest, const Buffer_t& src) const {
+            std::memcpy(dest.data(), src.data(), dest.size());
+        }
     }
 }

@@ -12,17 +12,17 @@ namespace mlp {
             const size_t n_left, const size_t n_right, const size_t batch_size,
             float* gradients, float* dC_da_next
         ) {
-             for (unsigned int batch = 0; batch < batch_size; batch++) {
+             for (unsigned int sample = 0; sample < batch_size; sample++) {
                 for (unsigned int left_index = 0; left_index < n_left; left_index++) {
                     for (unsigned int right_index = 0; right_index < n_right; right_index++) {
                         unsigned int weight_index = left_index * n_right + right_index;
 
-                        float a = a_right[batch * n_right + right_index];
-                        float aleft = a_left[batch * n_left + left_index]; // preceding layer activation
+                        float a = a_right[sample * n_right + right_index];
+                        float aleft = a_left[sample * n_left + left_index]; // preceding layer activation
 
                         float da_dz = TActivation::derivative(a); // works for leaky relu, switch to using z later, need to add logits into the argument list
                         float dz_dw = aleft;
-                        float dC_da = dC_da_gradients[batch * n_right + right_index];
+                        float dC_da = dC_da_gradients[sample * n_right + right_index];
 
                         float dC_dz = dC_da * da_dz;
                         float dC_dw = dC_dz * dz_dw;
@@ -30,7 +30,7 @@ namespace mlp {
                         float dz_da_left = weights[weight_index];
                         float dC_da_left = dC_dz * dz_da_left;
 
-                        dC_da_next[batch * n_left + left_index] += dC_da_left;
+                        dC_da_next[sample * n_left + left_index] += dC_da_left;
                         gradients[weight_index] += dC_dw / batch_size;
                     }
                 }
@@ -44,16 +44,16 @@ namespace mlp {
             const size_t n_output, const size_t n_hidden, const size_t batch_size,
             const int* labels, float* gradients, float* dC_da_hidden_list
         ) {
-            for (unsigned int batch = 0; batch < batch_size; batch++) {
+            for (unsigned int sample = 0; sample < batch_size; sample++) {
                 for (unsigned int hidden_index = 0; hidden_index < n_hidden; hidden_index++) {
                     for (unsigned int output_index = 0; output_index < n_output; output_index++) {
                         unsigned int weight_index = hidden_index * n_output + output_index;
 
-                        float a_output = a_output_list[batch * n_output + output_index];
-                        float a_hidden = a_hidden_list[batch * n_hidden + hidden_index];
+                        float a_output = a_output_list[sample * n_output + output_index];
+                        float a_hidden = a_hidden_list[sample * n_hidden + hidden_index];
 
                         float y = 0.0f;
-                        if (output_index == labels[batch]) y = 1.0f;
+                        if (output_index == labels[sample]) y = 1.0f;
 
                         float dC_dz_output = a_output - y; // dC/dz_L = a_L - y
                         float dC_dw_output = a_hidden * dC_dz_output; // dC/dw_L = a_L-1 (a_L - y)    where w_L connects a_L-1 and a_L
@@ -68,7 +68,7 @@ namespace mlp {
 
                         float dC_da_hidden = dC_dz_output * dz_output_da_hidden;
 
-                        dC_da_hidden_list[batch * n_hidden + hidden_index] += dC_da_hidden;
+                        dC_da_hidden_list[sample * n_hidden + hidden_index] += dC_da_hidden;
                         gradients[weight_index] += dC_dw_output / batch_size;
                     }
                 }

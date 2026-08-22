@@ -16,16 +16,19 @@ namespace mlp {
     using Matrix = cuda::Matrix;
     using Context = cuda::Context;
     using Profiler = cuda::Profiler;
+    using Buffer = cuda::Buffer;
     using MLP_t = MLP<Context>;
     #elif defined(MLP_OPENCL)
     using Matrix = opencl::Matrix;
     using Context = opencl::Context;
     using Profiler = opencl::Profiler;
+    using Buffer = opencl::Buffer;
     using MLP_t = MLP<Context>;
     #elif defined(MLP_HOST)
     using Matrix = host::Matrix;
     using Context = host::Context;
     using Profiler = host::Profiler;
+    using Buffer = host::Buffer;
     using MLP_t = MLP<Context>;
     #else
     #error "No compute context has been defined"

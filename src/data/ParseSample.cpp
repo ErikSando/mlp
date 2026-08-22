@@ -5,11 +5,11 @@
 #include "data/ParseSample.hpp"
 
 namespace mlp {
-    bool parse_sample(const std::string& path, ImageData& sample) {
+    bool parse_sample(const std::string& path, ImageData& sample, const size_t max_size) {
         std::ifstream input(path);
 
         if (!input.is_open()) {
-            std::cout << "Could not open: " << path << "\n";
+            std::cerr << "Could not open: " << path << "\n";
             return false;
         }
 
@@ -38,6 +38,11 @@ namespace mlp {
 
             if (dimensions.size() < 2) dimensions.push_back(current_value);
             else sample.data.push_back((float) current_value / 255.0f);
+
+            if (sample.data.size() > max_size) {
+                std::cerr << "Exceeded maximum sample size of " << max_size << " inputs.\n";
+                return false;
+            }
 
             current_value = 0;
         }

@@ -4,12 +4,12 @@
 namespace mlp {
     namespace cuda {
         __global__ void cce_kernel(const float* outputs, const float* targets, const size_t classes, const size_t batch_size, float* result) {
-            unsigned int batch = blockDim.y * blockIdx.y + threadIdx.y;
+            unsigned int sample = blockDim.y * blockIdx.y + threadIdx.y;
             unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
 
-            if (batch >= batch_size || index >= classes || targets[batch * classes + index] != 1.0f) return;
+            if (sample >= batch_size || index >= classes || targets[sample * classes + index] != 1.0f) return;
 
-            result[batch] = -logf(outputs[batch * classes + index]);
+            result[sample] = -logf(outputs[sample * classes + index]);
         }
 
         void Context::computeLoss(const Matrix_t& outputs, const Matrix_t& targets, Matrix_t& result, const Loss loss) const {

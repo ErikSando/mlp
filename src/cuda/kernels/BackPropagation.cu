@@ -87,18 +87,18 @@ namespace mlp {
         ) {
             unsigned int left_index = blockIdx.x * blockDim.x + threadIdx.x;
             unsigned int right_index = blockIdx.y * blockDim.y + threadIdx.y;
-            unsigned int batch = blockIdx.z * blockDim.z + threadIdx.z;
+            unsigned int sample = blockIdx.z * blockDim.z + threadIdx.z;
 
-            if (left_index >= n_left || right_index >= n_right || batch >= batch_size) return;
+            if (left_index >= n_left || right_index >= n_right || sample >= batch_size) return;
 
             unsigned int weight_index = left_index * n_right + right_index;
 
-            float a = a_right[batch * n_right + right_index];
-            float aleft = a_left[batch * n_left + left_index]; // preceding layer activation
+            float a = a_right[sample * n_right + right_index];
+            float aleft = a_left[sample * n_left + left_index]; // preceding layer activation
 
             float da_dz = TActivation::derivative(a); // works for leaky relu, switch to using z later, need to add logits into the kernel launch
             float dz_dw = aleft;
-            float dC_da = dC_da_gradients[batch * n_right + right_index];
+            float dC_da = dC_da_gradients[sample * n_right + right_index];
 
             float dC_dz = dC_da * da_dz;
             float dC_dw = dC_dz * dz_dw;
@@ -108,7 +108,7 @@ namespace mlp {
 
             // need some reduction method for these, fix it later:
 
-            atomicAdd(&dC_da_next[batch * n_left + left_index], dC_da_left);
+            atomicAdd(&dC_da_next[sample * n_left + left_index], dC_da_left);
             atomicAdd(&gradients[weight_index], dC_dw / batch_size);
         }
 
@@ -121,17 +121,17 @@ namespace mlp {
         ) {
             unsigned int hidden_index = blockIdx.x * blockDim.x + threadIdx.x;
             unsigned int output_index = blockIdx.y * blockDim.y + threadIdx.y;
-            unsigned int batch = blockIdx.z * blockDim.z + threadIdx.z;
+            unsigned int sample = blockIdx.z * blockDim.z + threadIdx.z;
 
-            if (hidden_index >= n_hidden || output_index >= n_output || batch >= batch_size) return;
+            if (hidden_index >= n_hidden || output_index >= n_output || sample >= batch_size) return;
 
             unsigned int weight_index = hidden_index * n_output + output_index;
 
-            float a_output = a_output_list[batch * n_output + output_index];
-            float a_hidden = a_hidden_list[batch * n_hidden + hidden_index];
+            float a_output = a_output_list[sample * n_output + output_index];
+            float a_hidden = a_hidden_list[sample * n_hidden + hidden_index];
 
             float y = 0.0f;
-            if (output_index == labels[batch]) y = 1.0f;
+            if (output_index == labels[sample]) y = 1.0f;
 
             float dC_dz_output = a_output - y; // dC/dz_L = a_L - y
             float dC_dw_output = a_hidden * dC_dz_output; // dC/dw_L = a_L-1 (a_L - y)    where w_L connects a_L-1 and a_L
@@ -142,7 +142,7 @@ namespace mlp {
 
             // need some reduction method for these, fix it later:
 
-            atomicAdd(&dC_da_hidden_list[batch * n_hidden + hidden_index], dC_da_hidden);
+            atomicAdd(&dC_da_hidden_list[sample * n_hidden + hidden_index], dC_da_hidden);
             atomicAdd(&gradients[weight_index], dC_dw_output / batch_size);
         }
 

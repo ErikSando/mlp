@@ -9,7 +9,8 @@
 #include <cassert>
 
 #include "enums/Enums.hpp"
-#include "host/matrix/Matrix.hpp"
+#include "host/memory/Buffer.hpp" 
+#include "host/memory/Matrix.hpp"
 #include "host/profiling/Profiler.hpp"
 
 namespace mlp {
@@ -17,6 +18,7 @@ namespace mlp {
         class Context {
             public:
 
+            using Buffer_t = Buffer;
             using Matrix_t = Matrix;
 
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
@@ -24,6 +26,10 @@ namespace mlp {
             void transfer(float* dest, const Matrix_t& src) const;
             void transfer(Matrix_t& dest, const float* src) const;
             void transfer(Matrix_t& dest, const Matrix_t& src) const;
+
+            void transfer(void* dest, const Buffer_t& src) const;
+            void transfer(Buffer_t& dest, const void* src) const;
+            void transfer(Buffer_t& dest, const Buffer_t& src) const;
 
             void randomise(Matrix_t& matrix, float min, float max) const;
 
@@ -54,7 +60,7 @@ namespace mlp {
 
             void optimiseLayer(Matrix_t& weights, const Matrix_t& gradients, const float learning_rate) const;
 
-            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, const size_t n_samples, Matrix_t& correct, Matrix_t& classifications) const;
+            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const;
 
             void computeLoss(const Matrix_t& outputs, const Matrix_t& targets, Matrix_t& result, const Loss loss) const;
 

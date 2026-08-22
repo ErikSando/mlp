@@ -1,35 +1,3 @@
-# cmake_minimum_required(VERSION 3.18)
-# project(MLP LANGUAGES CXX CUDA)
-
-# set(CMAKE_CXX_STANDARD 23)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# set(CMAKE_CUDA_STANDARD 17)
-# set(CMAKE_CUDA_STANDARD_REQUIRED ON)
-
-# set(CMAKE_CUDA_ARCHITECTURES 120)
-
-# find_package(CUDAToolkit REQUIRED)
-
-# file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS
-#     src/*.cpp
-# )
-
-# file(GLOB_RECURSE CUDA_SOURCES CONFIGURE_DEPENDS
-#     src/*.cu
-# )
-
-# add_executable(mlp
-#     ${CPP_SOURCES}
-#     ${CUDA_SOURCES}
-# )
-
-# target_include_directories(mlp PRIVATE
-#     src
-#     ${CUDAToolkit_INCLUDE_DIRS}
-# )
-
-# target_link_libraries(mlp PRIVATE CUDA::cudart)
-
 cmake_minimum_required(VERSION 3.18)
 
 project(MLP LANGUAGES CXX)
@@ -40,8 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(MLP_COMPUTE "HOST" CACHE STRING "MLP compute context: CUDA, OPENCL, or leave blank for host computing")
 set_property(CACHE MLP_COMPUTE PROPERTY STRINGS CUDA OPENCL HOST)
 
-option(MLP_DEBUG "Enable debug mode" OFF)
-
 file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS
     src/*.cpp
 )
@@ -50,6 +16,7 @@ list(FILTER CPP_SOURCES EXCLUDE REGEX "/(cuda|host|opencl)/")
 
 set(SOURCES ${CPP_SOURCES})
 
+message(STATUS "Compute context: ${MLP_COMPUTE}")
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG")

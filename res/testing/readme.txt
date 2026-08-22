@@ -1,1 +1,0 @@
-Making some basic things for the purpose of verifying backpropagation works

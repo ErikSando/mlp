@@ -10,5 +10,5 @@ namespace mlp {
         std::vector<float> data;
     };
 
-    bool parse_sample(const std::string& path, ImageData& sample);
+    bool parse_sample(const std::string& path, ImageData& sample, const size_t max_size = 10000);
 }

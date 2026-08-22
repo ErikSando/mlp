@@ -23,39 +23,38 @@ namespace mlp {
         mlp::Dataset mnist_train_ds("res/mnist/mnist_train.csv");
         mlp::Dataset mnist_test_ds("res/mnist/mnist_test.csv");
 
-        mlp::Dataset test_ds("res/testing/test_data_2.csv");
-
         mlp::Profiler profiler;
 
         mlp::Context context(&profiler);
 
         constexpr size_t BATCH_SIZE = 1;
 
-        // std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
-        std::vector<size_t> layer_sizes = { 4, 8, 4 };
+        std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
 
         mlp::MLP_t model(context);
         model.init(layer_sizes, BATCH_SIZE);
-        // model.setLearningRate(0.05f);
 
         mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
-        // mnist_train_ds.parseBatch(batch);
-        // test_ds.parseBatch(batch);
 
-        std::cout << "backward passing...\n";
+        // std::cout << "backward passing...\n";
 
-        for (size_t i = 0; i < 10000; i++) {
-            // mnist_train_ds.parseBatch(batch);
-            test_ds.parseBatch(batch);
-            model.forwardPass(batch);
-            model.backwardPass(batch);
-        }
+        // for (size_t i = 0; i < 10000; i++) {
+        //     mnist_train_ds.parseBatch(batch);
+        //     model.forwardPass(batch);
+        //     model.backwardPass(batch);
+        // }
 
-        std::cout << "synchronising...\n";
+        // std::cout << "synchronising...\n";
 
-        context.synchronise();
+        // context.synchronise();
 
-        std::cout << "done.\n";
+        // std::cout << "done.\n";
+
+        TestData test_data;
+
+        commands::test(model, context, mnist_test_ds, test_data);
+
+        std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << " correct)\n";
 
         std::string command;
 
@@ -78,10 +77,11 @@ namespace mlp {
                 break;
             }
             else if (cmd == "help") {
-                std::cout << "\nhelp:\n - Displays this menu.\n";
-                std::cout << "\nprint [image data path]:\n - Visualise the data in a file in the terminal.\n";
+                std::cout << "\nhelp\n - Displays this menu.\n";
+                std::cout << "\nprint [image data path]\n - Visualise the data in a file in the terminal.\n";
                 std::cout << "\nclassify [image data path] [label: optional]\n - Use the network to classify an image. If a label is given, the error/loss will be printed.\n - Aliases: class, id, identify.\n";
-                std::cout << "\nexit:\n - Terminate the program.\n - Aliases: quit.\n\n";
+                std::cout << "\ntest\n - Test the model's accuracy over one epoch.\n";
+                std::cout << "\nexit\n - Terminate the program.\n - Aliases: quit.\n\n";
             }
             else if (cmd == "print") {
                 if (args.size() < 2) {
@@ -95,7 +95,7 @@ namespace mlp {
                 ImageData sample;
 
                 if (!parse_sample(path, sample)) {
-                    std::cout << "Failed to parse sample\n";
+                    std::cout << "Failed to parse sample.\n";
                     continue;
                 }
 
@@ -118,11 +118,14 @@ namespace mlp {
                 ImageData sample;
 
                 if (!parse_sample(path, sample)) {
-                    std::cout << "Failed to parse sample\n";
+                    std::cout << "Failed to parse sample.\n";
                     continue;
                 }
 
                 commands::classify_sample(model, sample, label);
+            }
+            else if (cmd == "test") {
+                
             }
             else {
                 std::cout << "Unknown command: '" << cmd << "'\n";

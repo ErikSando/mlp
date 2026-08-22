@@ -18,6 +18,7 @@ namespace mlp {
 
     template<typename TContext>
     class MLP {
+        using Buffer_t = typename TContext::Buffer_t;
         using Matrix_t = typename TContext::Matrix_t;
         using Layer_t = Layer<TContext>;
 
@@ -46,9 +47,11 @@ namespace mlp {
         // ^^^ use a safer method in the future, the size of host_outputs isnt enforced right now
 
         // Check the number of correct classifications out of the given number of samples
-        void checkOutputs(const std::vector<int>& labels, const size_t n_samples, Matrix_t& correct, Matrix_t& classifications);
+        // I removed giving a number of samples, I don't know why I had that in the first place, maybe to look at the first n samples in a batch?
+        // I'll add it back later if I need it
+        void checkOutputs(const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications);
 
-        size_t getInputCount() { return m_layers[0].logits.columns(); }
+        size_t getInputCount() { return m_layers[0]->logits.columns(); }
         constexpr size_t getBatchSize() { return m_batchSize; }
 
         float getLearningRate() { return m_learningRate; }

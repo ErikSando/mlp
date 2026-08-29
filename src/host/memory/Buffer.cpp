@@ -14,7 +14,7 @@ namespace mlp {
         }
 
         Buffer::~Buffer() {
-            free(m_data);
+            if (m_data != nullptr) free(m_data);
         }
 
         void Buffer::zero() {

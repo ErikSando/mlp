@@ -4,6 +4,39 @@
 #include "data/Dataset.hpp"
 
 namespace mlp {
+    /*
+        Scans numeric characters from the start to end addresses until hitting a non-numeric character.
+        c - start address
+        end - end address
+        output - reference to the variable where the scanned value is written to
+        If there is a non numeric character before the first numeric character, it will return an illegal character error.
+        Any number of leading minus signs are permitted, each one negating the final value.
+        Returns the error type, NONE if successful.
+    */
+    ScanError scanInt(char*& c, char* end, int& output) {
+        int value = 0;
+        bool is_negative = false;
+
+        while (*c == '-' && c < end) {
+            is_negative = !is_negative;
+            c++;
+        }
+
+        if (c >= end) return ScanError::OUT_OF_BOUNDS;
+        if (!std::isdigit(*c)) return ScanError::ILLEGAL_CHAR;
+
+        while (std::isdigit(*c) && c < end) {
+            int digit = *c - '0';
+            value *= 10;
+            value += digit;
+            c++;
+        }
+
+        output = is_negative ? -value : value;
+
+        return ScanError::NONE;
+    }
+
     Dataset::Dataset(const std::string& file_path) {
         m_file.open(file_path, std::ios::binary);
 
@@ -49,7 +82,7 @@ namespace mlp {
         m_totalLines = m_lineIndices.size();
     }
 
-    void Dataset::readLine(const size_t line, char* buffer) {
+    size_t Dataset::readLine(const size_t line, char* buffer) {
         size_t start_line = line % m_totalLines;
         size_t next_line = (line + 1) % m_totalLines;
 
@@ -62,6 +95,8 @@ namespace mlp {
 
         m_file.seekg(start);
         m_file.read(buffer, size);
+
+        return size;
     }
 
     // I want to clarify: I removed the first row of the MNIST data (column labels) to make this more simple
@@ -77,32 +112,61 @@ namespace mlp {
         size_t data_index = 0;
 
         for (size_t i = 0; i < batch.size; i++) {
-            readLine(m_currentLine + i, buffer.data());
+            size_t line_length = readLine(m_currentLine + i, buffer.data());
 
             char* c = buffer.data();
             int value = 0;
 
-            batch.labels[i] = *c - '0'; // first character is the label
-            c += 2; // move to the first non-label number
+            char* end = buffer.data() + line_length;
 
-            while (c < buffer.data() + m_maxLineLength && *c != '\n') {
-                if (*c == ',') {
-                    batch.data[data_index++] = ((float) value) / 255.0f;
-                    value = 0;
+            // batch.labels[i] = *c - '0'; // first character is the label
+            // c += 2; // move to the first non-label number
+
+            ScanError error = scanInt(c, end, batch.labels[i]);
+
+            if (error != ScanError::NONE) {
+                std::cerr << "Error while reading label: " << getErrorMsg(error) << "\n";
+                throw std::runtime_error("Error while reading label");
+            }
+
+            while (c < end && *c != '\n' && *c != '\r') {
+                if (*c != ',') {
+                    std::cout << "'" << (int)(*c) << "'" << "\n";
+                    std::cerr << "Invalid seperator character: '" << *c << "'\n";
+                    throw std::runtime_error("");
                 }
-                else if (std::isdigit(*c)) {
-                    int digit = *c - '0';
-                    value *= 10;
-                    value += digit;
+
+                c++;
+
+                int value = 0;
+                ScanError error = scanInt(c, end, value);
+
+                if (error != ScanError::NONE) {
+                    std::cerr << "Error while reading sample data: " << getErrorMsg(error) << "\n";
+                    throw std::runtime_error("Error while reading sample data");
                 }
+
+                assert(data_index < batch.data.size());
+
+                batch.data[data_index++] = ((float) value) / 255.0f;
+
+                // if (*c == ',') {
+                //     batch.data[data_index++] = ((float) value) / 255.0f;
+                //     value = 0;
+                // }
+                // else if (std::isdigit(*c)) {
+                //     int digit = *c - '0';
+                //     value *= 10;
+                //     value += digit;
+                // }
 
                 // ignore other characters
 
-                c++; // say that again?
+                // c++;
             }
 
-            batch.data[data_index++] = ((float) value) / 255.0f;
-            value = 0;
+            // batch.data[data_index++] = ((float) value) / 255.0f;
+            // value = 0;
         }
 
         m_currentLine = (m_currentLine + batch.size) % m_totalLines;

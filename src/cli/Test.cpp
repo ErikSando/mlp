@@ -3,13 +3,13 @@
 
 namespace mlp {
     namespace commands {
-        void test(MLP_t& model, Context& context, Dataset& dataset, TestData& data) {
+        void test(MLP_t* model, Context& context, Dataset& dataset, TestData& data) {
             data.reset();
             dataset.resetLine();
 
-            size_t input_count = model.getInputCount();
-            size_t batch_size = model.getBatchSize();
-            size_t total_batches = dataset.getSize() / batch_size;
+            size_t input_count = model->getInputCount();
+            size_t batch_size = model->getBatchSize();
+            size_t total_batches = dataset.size() / batch_size;
 
             Buffer correct(sizeof(int));
             Buffer classifications(batch_size * sizeof(int));
@@ -21,8 +21,8 @@ namespace mlp {
 
             for (size_t b = 0; b < total_batches; b++) {
                 dataset.parseBatch(batch);
-                model.forwardPass(batch);
-                model.checkOutputs(batch.labels, correct, classifications);
+                model->forwardPass(batch);
+                model->checkOutputs(batch.labels, correct, classifications);
             }
 
             int host_correct;

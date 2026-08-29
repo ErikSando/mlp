@@ -19,9 +19,9 @@ namespace mlp {
     };
 
     namespace commands {
-        void test(MLP_t& model, Context& context, Dataset& dataset, TestData& data);
+        void test(MLP_t* model, Context& context, Dataset& dataset, TestData& data);
 
         void print_sample(const ImageData& sample);
-        void classify_sample(MLP_t& model, const ImageData& image_data, const int label = NO_LABEL);
+        void classify_sample(MLP_t* model, const ImageData& image_data, const int label = NO_LABEL);
     }
 }

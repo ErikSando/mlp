@@ -17,7 +17,7 @@ namespace mlp {
         content << input.rdbuf();
         input.close();
 
-        std::string content_str = content.str();
+        std::string content_str = content.str() + '\n';
 
         size_t index = 0;
         int current_value = 0;

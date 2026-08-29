@@ -19,6 +19,26 @@ maybe use "mapping" in the future
 */
 
 namespace mlp {
+    enum class ScanError {
+        NONE, ILLEGAL_CHAR, OUT_OF_BOUNDS
+    };
+
+    inline std::string getErrorMsg(ScanError error) {
+        switch (error) {
+            case (ScanError::ILLEGAL_CHAR):
+                return "illegal character";
+            break;
+
+            case (ScanError::OUT_OF_BOUNDS):
+                return "no numeric characters within the given bounds";
+            break;
+
+            default:
+                return "no error";
+            break;
+        }
+    }
+
     constexpr size_t BUFFER_SIZE = 1 << 20; // 1 MB = up to 1 million chars (1 char = 1 byte), heap-allocated
     constexpr int NO_LINE = -1;
 
@@ -28,14 +48,15 @@ namespace mlp {
         Dataset(const std::string& file_path);
 
         size_t parseBatch(Batch& batch, const int start_line = NO_LINE);
-        size_t getSize() { return m_totalLines; }
+        size_t size() { return m_totalLines; }
 
         void resetLine() { m_currentLine = 0; }
 
         private:
 
         void generateLineIndices();
-        void readLine(const size_t line, char* buffer);
+
+        size_t readLine(const size_t line, char* buffer);
 
         size_t m_maxLineLength = 0;
         size_t m_fileSize;

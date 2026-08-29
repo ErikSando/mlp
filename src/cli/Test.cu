@@ -12,7 +12,7 @@ namespace mlp {
 
         // size_t input_count = model.getInputCount();
         // size_t batch_size = model.getBatchSize();
-        // size_t total_batches = dataset.getSize() / batch_size;
+        // size_t total_batches = dataset.size() / batch_size;
 
     //     Matrix correct(1, 1);
     //     Matrix incorrect(1, 1);

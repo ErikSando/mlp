@@ -25,6 +25,9 @@ namespace mlp {
         void Context::checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const {
             assert(outputs.rows() == labels.size());
 
+            correct.zero();
+            classifications.zero();
+
             check_outputs(outputs.data(), labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
         }
     }

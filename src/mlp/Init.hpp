@@ -20,20 +20,21 @@ namespace mlp {
 
         size_t node_count = layer_sizes[0];
 
-        float weight_max = std::sqrt(2.0f / static_cast<float>(node_count));
-        float weight_min = -weight_max;
-
         m_layers.emplace_back(std::make_unique<Layer_t>(m_batchSize, node_count, 0));
 
         size_t previous_count = node_count;
 
-        // using an equal seed to test that cuda and host builds give the same results
+        // using an equal seed to test that different builds give the same results
         constexpr unsigned int SEED = 1234567890;
         std::mt19937 gen(SEED);
-        std::uniform_real_distribution<float> distrib(weight_min, weight_max);
 
         for (size_t i = 1; i < layer_sizes.size(); i++) {
             size_t node_count = layer_sizes[i];
+
+            float weight_max = std::sqrt(2.0f / static_cast<float>(node_count));
+            float weight_min = -weight_max;
+
+            std::uniform_real_distribution<float> distrib(weight_min, weight_max);
 
             bool is_output_layer = i == layer_sizes.size() - 1;
             Activation activation = is_output_layer ? output_activation : hidden_activation;

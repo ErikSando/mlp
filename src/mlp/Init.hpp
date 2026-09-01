@@ -47,7 +47,7 @@ namespace mlp {
             for (size_t i = 0; i < m_layers.back()->weights.size(); i++) {
                 weights[i] = distrib(gen);
             }
-            m_context.transfer(weights, m_layers.back()->weights);
+            m_context.transfer(m_layers.back()->weights, weights);
 
             previous_count = node_count;
         }

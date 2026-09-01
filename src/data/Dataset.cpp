@@ -119,9 +119,6 @@ namespace mlp {
 
             char* end = buffer.data() + line_length;
 
-            // batch.labels[i] = *c - '0'; // first character is the label
-            // c += 2; // move to the first non-label number
-
             ScanError error = scanInt(c, end, batch.labels[i]);
 
             if (error != ScanError::NONE) {
@@ -149,24 +146,7 @@ namespace mlp {
                 assert(data_index < batch.data.size());
 
                 batch.data[data_index++] = ((float) value) / 255.0f;
-
-                // if (*c == ',') {
-                //     batch.data[data_index++] = ((float) value) / 255.0f;
-                //     value = 0;
-                // }
-                // else if (std::isdigit(*c)) {
-                //     int digit = *c - '0';
-                //     value *= 10;
-                //     value += digit;
-                // }
-
-                // ignore other characters
-
-                // c++;
             }
-
-            // batch.data[data_index++] = ((float) value) / 255.0f;
-            // value = 0;
         }
 
         m_currentLine = (m_currentLine + batch.size) % m_totalLines;

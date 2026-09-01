@@ -24,9 +24,6 @@ namespace mlp {
         mlp::Dataset mnist_train_ds("res/mnist/mnist_train.csv");
         mlp::Dataset mnist_test_ds("res/mnist/mnist_test.csv");
 
-        std::cout << "Train data: " << mnist_train_ds.size() << " samples.\n";
-        std::cout << "Test data:  " << mnist_test_ds.size() << " samples.\n";
-
         mlp::Profiler profiler;
 
         mlp::Context context(&profiler);
@@ -65,41 +62,35 @@ namespace mlp {
 
         mnist_train_ds.parseBatch(batch);
 
-        for (size_t i = 0; i < BATCH_SIZE; i++) {
-            std::cout << "label: " << batch.labels[i] << "\n";
-            std::cout << "values: " << batch.data[i * layer_sizes[0]];
-            for (size_t j = 1; j < layer_sizes[0]; j++) {
-                std::cout << ", " << batch.data[i * layer_sizes[0] + j];
-            }
-            std::cout << "\n";
+        // TODO: find where CUDA has non determinism
+        // Compare all logits and activations for each layer after a forward pass on the host and CUDA builds
+
+        TestData test_data;
+
+        std::cout << "testing...\n";
+
+        commands::test(model, context, mnist_test_ds, test_data);
+
+        std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
+        std::cout << "backward passing...\n";
+
+        for (size_t i = 0; i < mnist_train_ds.size() / BATCH_SIZE; i++) {
+            mnist_train_ds.parseBatch(batch);
+            model->forwardPass(batch);
+            model->backwardPass(batch);
         }
 
-        // TestData test_data;
+        std::cout << "done.\n";
+        std::cout << "synchronising...\n";
 
-        // std::cout << "testing...\n";
+        context.synchronise();
 
-        // commands::test(model, context, mnist_test_ds, test_data);
+        std::cout << "done.\n";
+        std::cout << "testing...\n";
 
-        // std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << " correct)\n";
-        // std::cout << "backward passing...\n";
+        commands::test(model, context, mnist_test_ds, test_data);
 
-        // for (size_t i = 0; i < (10000UL / BATCH_SIZE); i++) {
-        //     mnist_train_ds.parseBatch(batch);
-        //     model->forwardPass(batch);
-        //     model->backwardPass(batch);
-        // }
-
-        // std::cout << "done.\n";
-        // std::cout << "synchronising...\n";
-
-        // context.synchronise();
-
-        // std::cout << "done.\n";
-        // std::cout << "testing...\n";
-
-        // commands::test(model, context, mnist_test_ds, test_data);
-
-        // std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << " correct)\n";
+        std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
 
         std::string command;
 

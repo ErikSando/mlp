@@ -23,6 +23,10 @@ namespace mlp {
                 dataset.parseBatch(batch);
                 model->forwardPass(batch);
                 model->checkOutputs(batch.labels, correct, classifications);
+
+                // int host_correct;
+                // context.transfer((void*) &host_correct, correct);
+                // std::cout << "Correct: " << host_correct << "\n";
             }
 
             int host_correct;

@@ -213,10 +213,13 @@ namespace mlp {
                 block_count(output_activations.rows(), block.z)
             );
 
+            Buffer_t device_labels(labels.size() * sizeof(int));
+            transfer(device_labels, (void*) labels.data());
+
             compute_output_gradients_kernel<Softmax, CCE><<<grid, block>>>(
                 last_hidden_activations.data(), output_activations.data(), weights.data(),
                 output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
-                labels.data(),
+                (int*) device_labels.data(),
                 gradients.data(), dC_da_hidden.data()
             );
 

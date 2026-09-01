@@ -25,7 +25,7 @@ namespace mlp {
         size_t previous_count = node_count;
 
         // using an equal seed to test that different builds give the same results
-        constexpr unsigned int SEED = 1234567890;
+        constexpr unsigned int SEED = 42;
         std::mt19937 gen(SEED);
 
         for (size_t i = 1; i < layer_sizes.size(); i++) {

@@ -40,10 +40,12 @@ namespace mlp {
             const Matrix_t& weights, const Matrix_t& biases,
             const Activation activation
         ) const {
+            assert(logits.size() == activations.size());
+            assert(logits.rows() == activations.rows());
+            assert(logits.columns() == activations.columns());
             assert(inputs.columns() == weights.rows());
             assert(activations.rows() == inputs.rows());
             assert(activations.columns() == weights.columns());
-            assert(activations.size() == logits.size());
 
             if (m_profiler) m_profiler->startTask("Propagation");
 

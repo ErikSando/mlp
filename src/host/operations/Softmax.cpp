@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <cfloat>
 #include <cmath>
 
@@ -39,7 +41,7 @@ namespace mlp {
 
             if (m_profiler) m_profiler->startTask("Softmax");
 
-            softmax_op(inputs.data(), outputs.data(), inputs.rows(), outputs.rows());
+            softmax_op(inputs.data(), outputs.data(), inputs.rows(), inputs.columns());
 
             if (m_profiler) m_profiler->endTask();
         }

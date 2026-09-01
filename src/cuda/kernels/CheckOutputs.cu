@@ -70,9 +70,12 @@ namespace mlp {
             // correct.zero();
             // classifications.zero();
 
+            Buffer_t device_labels(labels.size() * sizeof(int));
+            transfer(device_labels, (void*) labels.data());
+
             cudaError_t err;
 
-            check_outputs_kernel<<<outputs.rows(), BLOCK_SIZE>>>(outputs.data(), labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
+            check_outputs_kernel<<<outputs.rows(), BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
 
             err = cudaGetLastError();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA check outputs error: ");

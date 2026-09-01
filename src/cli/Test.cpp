@@ -10,6 +10,7 @@ namespace mlp {
             size_t input_count = model->getInputCount();
             size_t batch_size = model->getBatchSize();
             size_t total_batches = dataset.size() / batch_size;
+            // size_t total_batches = 10;
 
             Buffer correct(sizeof(int));
             Buffer classifications(batch_size * sizeof(int));
@@ -24,9 +25,27 @@ namespace mlp {
                 model->forwardPass(batch);
                 model->checkOutputs(batch.labels, correct, classifications);
 
-                // int host_correct;
-                // context.transfer((void*) &host_correct, correct);
-                // std::cout << "Correct: " << host_correct << "\n";
+                // int* host_classifications = new int[batch_size];
+
+                // context.transfer((void*) host_classifications, classifications);
+
+                // std::cout << host_classifications[0];
+                // for (size_t i = 1; i < batch_size; i++) {
+                //     std::cout << ", " <<  host_classifications[i];
+                // }
+                // std::cout << "\n";
+
+                // delete[] host_classifications;
+
+                // if (b % 10 == 9) {
+                //     int host_correct;
+
+                //     context.transfer((void*) &host_correct, correct);
+
+                //     int total = b * batch_size;
+
+                //     std::cout << "Accuracy: " << (float) host_correct /  (float) total * 100 << "\n";
+                // }
             }
 
             int host_correct;

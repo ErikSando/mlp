@@ -24,11 +24,14 @@ namespace mlp {
         mlp::Dataset mnist_train_ds("res/mnist/mnist_train.csv");
         mlp::Dataset mnist_test_ds("res/mnist/mnist_test.csv");
 
+        mlp::Dataset test_ds("res/testing/test_data.csv");
+
         mlp::Profiler profiler;
 
         mlp::Context context(&profiler);
 
         constexpr size_t BATCH_SIZE = 32;
+        // constexpr size_t BATCH_SIZE = 4;
         constexpr float LEARNING_RATE = 0.01f;
 
         std::unordered_map<std::string, Activation> activation_functions; // maybe seperate hidden and output activation functions
@@ -52,6 +55,7 @@ namespace mlp {
 
         // base model
         std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
+        // std::vector<size_t> layer_sizes = { 100, 32, 4 };
         auto [it, _] = models.emplace(BASE_NAME, context);
         it->second.init(layer_sizes, BATCH_SIZE);
 
@@ -59,11 +63,6 @@ namespace mlp {
         std::string model_name = BASE_NAME;
 
         mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
-
-        mnist_train_ds.parseBatch(batch);
-
-        // TODO: find where CUDA has non determinism
-        // Compare all logits and activations for each layer after a forward pass on the host and CUDA builds
 
         TestData test_data;
 
@@ -74,7 +73,8 @@ namespace mlp {
         std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
         std::cout << "backward passing...\n";
 
-        for (size_t i = 0; i < mnist_train_ds.size() / BATCH_SIZE; i++) {
+        // for (size_t i = 0; i < mnist_train_ds.size() * 2 / BATCH_SIZE; i++) {
+        for (size_t i = 0; i < 400; i++) {
             mnist_train_ds.parseBatch(batch);
             model->forwardPass(batch);
             model->backwardPass(batch);

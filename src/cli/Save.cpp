@@ -29,6 +29,8 @@ namespace mlp {
     }
 
     namespace commands {
+        // char seperator = ' ';
+
         // bool save(MLP_t* model, std::string save_path) {
         //     std::ofstream file(save_path);
 
@@ -87,11 +89,11 @@ namespace mlp {
             }
 
             for (size_t layer_size : data.layer_sizes) {
-                file << layer_size << ",";
+                file << layer_size << seperator;
             }
             file << "\n";
 
-            file << activation_string(data.hidden_activation) << "," << activation_string(data.output_activation) << "\n";
+            file << activation_string(data.hidden_activation) << seperator << activation_string(data.output_activation) << "\n";
 
             file << loss_string(data.loss_function) << "\n";
             file << data.batch_size << "\n";
@@ -107,12 +109,12 @@ namespace mlp {
                 const std::vector<float>& biases = data.biases.at(i);
 
                 for (float weight : weights) {
-                    file << weight << ",";
+                    file << weight << seperator;
                 }
                 file << "\n";
 
                 for (float bias : biases) {
-                    file << bias << ",";
+                    file << bias << seperator;
                 }
                 file << "\n";
             }

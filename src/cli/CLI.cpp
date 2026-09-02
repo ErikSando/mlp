@@ -24,6 +24,9 @@ namespace mlp {
     constexpr size_t BATCH_SIZE = 32UL;
     constexpr float LEARNING_RATE = 0.01f;
 
+    std::unordered_map<std::string, Activation> activation_functions; // maybe seperate hidden and output activation functions
+    std::unordered_map<std::string, Loss> loss_functions;
+
     void command_loop() {
         mlp::Dataset mnist_train_ds("res/mnist/mnist_train.csv");
         mlp::Dataset mnist_test_ds("res/mnist/mnist_test.csv");
@@ -33,9 +36,6 @@ namespace mlp {
         mlp::Profiler profiler;
 
         mlp::Context context(&profiler);
-
-        std::unordered_map<std::string, Activation> activation_functions; // maybe seperate hidden and output activation functions
-        std::unordered_map<std::string, Loss> loss_functions;
 
         activation_functions["none"] = Activation::NONE;
         activation_functions["leakyrelu"] = Activation::LEAKY_RELU;
@@ -83,7 +83,6 @@ namespace mlp {
                 break;
             }
             else if (cmd == "help") {
-                std::cout << "* COMMANDS HERE ARE A TODO LIST, NOT MANY DO ANYTHING YET\n";
                 std::cout << "\nhelp\n - Displays this menu.\n";
                 std::cout << "\nbuild [name] [no. inputs] [hidden layer sizes] [no. outputs] [hidden activiation] [output activation] [loss] [batch size: optional] [learning rate: optional]\
                 \n - Build a model with the given parameters. For hidden layer sizes, give values seperated by commas e.g. 128,64 (without spaces). For no hidden layers leave any non-number character. \
@@ -91,7 +90,8 @@ namespace mlp {
                 \n Hidden activation functions:\n - none, relu, leakyrelu, sigmoid, tanh.\
                 \n Output activation functions:\n - none, softmax.\
                 \n Loss functions:\n - cce, mse.\n";
-                std::cout << "\nactiviate [name]\n - Set the model with the given name as the current model. Any commands ran will use this model.";
+                std::cout << "\nactiviate [name]\n - Set the model with the given name as the current model. Any commands ran will use this model.\n";
+                std::cout << "\ninfo\n - Display information about the model: layer sizes, activation functions, loss function, batch size, and learning rate.\n";
                 std::cout << "\train [no. epochs] [dataset file path]\n - Train the model with the specified number of epochs, using the specified dataset file.\n";
                 std::cout << "\ntest [dataset file path] [dataset file path]\n - Test the model's accuracy over one epoch, using the specified dataset file.\n";
                 std::cout << "\nprint [image data path]\n - Visualise the data in a file in the terminal.\n";
@@ -217,6 +217,24 @@ namespace mlp {
                 model_name = name;
                 std::cout << "Activated model '" << name << "'\n";
             }
+            else if (cmd == "info") {
+                ModelData data;
+                model->exportData(data);
+
+                std::cout << "Layer sizes: " << data.layer_sizes.at(0);
+
+                for (size_t i = 1; i < data.layer_sizes.size(); i++) {
+                    std::cout << ", " << data.layer_sizes.at(i);
+                }
+                std::cout << "\n";
+
+                std::cout << "Hidden layer count: " << data.layer_sizes.size() - 2 << "\n";
+                std::cout << "Hidden layer activation function: " << activation_string(data.hidden_activation) << "\n";
+                std::cout << "Output layer activation function: " << activation_string(data.output_activation) << "\n";
+                std::cout << "Loss function: " << loss_string(data.loss_function) << "\n";
+                std::cout << "Batch size: " << data.batch_size << "\n";
+                std::cout << "Learning rate: " << data.learning_rate << "\n";
+            }
             else if (cmd == "print") {
                 if (args.size() < 2) {
                     std::cout << "Insufficient arguments" << std::endl;
@@ -331,11 +349,16 @@ namespace mlp {
 
                 ModelData data;
 
-                commands::load(data, save_path);
+                bool load_success = commands::load(data, save_path);
+
+                if (!load_success) {
+                    std::cout << "Failed to load model data from file, can not build model.\n";
+                    continue;
+                }
 
                 auto [it, _] = models.emplace(name, context);
 
-                it->second.init(data.layer_sizes, data.batch_size, data.hidden_activation, data.output_activation, data.loss_function, data.learning_rate);
+                it->second.init(data);
             }
             else {
                 std::cout << "Unknown command: '" << cmd << "'\n";

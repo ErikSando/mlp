@@ -41,7 +41,7 @@ namespace mlp {
 
         // Construct the layers of the network, specifying the sizes and activation functions
         void init(
-            std::vector<size_t>& layer_sizes,
+            const std::vector<size_t>& layer_sizes,
             const size_t batch_size = 32UL,
             const Activation hidden_activation = Activation::LEAKY_RELU,
             const Activation output_activation = Activation::SOFTMAX,

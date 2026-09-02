@@ -8,7 +8,7 @@
 namespace mlp {
     template<typename TContext>
     void MLP<TContext>::init(
-        std::vector<size_t>& layer_sizes,
+        const std::vector<size_t>& layer_sizes,
         const size_t batch_size,
         const Activation hidden_activation, const Activation output_activation,
         const Loss loss_function,
@@ -65,12 +65,10 @@ namespace mlp {
     template<typename TContext>
     void MLP<TContext>::init(const ModelData& data) {
         if (data.weights.size() != data.layer_sizes.size() - 1) {
-            // throw std::runtime_error("Incorrect number of weight matrices given, expected " + data.layer_sizes.size() - 1 + ", got " + data.weights.size());
             throw std::runtime_error("Incorrect number of weight matrices given");
         }
 
         if (data.biases.size() != data.layer_sizes.size() - 1) {
-            // throw std::runtime_error("Incorrect number of bias vectors given, expected " + data.layer_sizes.size() - 1 + ", got " + data.biases.size());
             throw std::runtime_error("Incorrect number of bias vectors given");
         }
 
@@ -78,16 +76,14 @@ namespace mlp {
 
         for (size_t i = 1; i < m_layers.size(); i++) {
             Layer_t_up& layer = m_layers.at(i);
-            std::vector<float>& weights = data.weights.at(i - 1);
-            std::vector<float>& biases = data.biases.at(i - 1);
+            const std::vector<float>& weights = data.weights.at(i - 1);
+            const std::vector<float>& biases = data.biases.at(i - 1);
 
             if (weights.size() != layer->weights.size()) {
-                // throw std::runtime_error("Incorrect number of weights given, expected " + layer->weights.size() + ", got " + weights.size());
                 throw std::runtime_error("Incorrect number of weights given");
             }
 
             if (biases.size() != layer->biases.size()) {
-                // throw std::runtime_error("Incorrect number of biases given, expected " + layer->biases.size() + ", got " + biases.size());
                 throw std::runtime_error("Incorrect number of biases given");
             }
 

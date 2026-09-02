@@ -3,9 +3,11 @@
 
 namespace mlp {
     namespace commands {
-        void test(MLP_t* model, Context& context, Dataset& dataset, TestData& data) {
+        void test(MLP_t* model, Dataset& dataset, TestData& data) {
             data.reset();
             dataset.resetLine();
+
+            const Context& context = model->getContext();
 
             size_t input_count = model->getInputCount();
             size_t batch_size = model->getBatchSize();

@@ -16,7 +16,7 @@ namespace mlp {
     }
 
     template<typename TContext>
-    void MLP<TContext>::copyOutputs(float* host_outputs) {
+    void MLP<TContext>::copyOutputs(float* host_outputs) const {
         m_context.transfer(host_outputs, m_layers.back()->activations);
     }
 }

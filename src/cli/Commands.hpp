@@ -18,11 +18,19 @@ namespace mlp {
         size_t correct;
     };
 
+    std::string activation_string(const Activation activation);
+    std::string loss_string(const Loss loss);
+
     namespace commands {
         void train(MLP_t* model, Dataset& dataset, size_t n_epochs);
-        void test(MLP_t* model, Context& context, Dataset& dataset, TestData& data);
+        void test(MLP_t* model, Dataset& dataset, TestData& data);
 
         void print_sample(const ImageData& sample);
         void classify_sample(MLP_t* model, const ImageData& image_data, const int label = NO_LABEL);
+
+        // bool save(MLP_t* model, std::string save_path);
+        // bool load(MLP_t* model, std::string save_path);
+        bool save(const ModelData& data, std::string save_path);
+        bool load(ModelData& data, std::string save_path);
     }
 }

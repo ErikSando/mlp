@@ -20,6 +20,10 @@ namespace mlp {
         return str;
     }
 
+    // default values
+    constexpr size_t BATCH_SIZE = 32UL;
+    constexpr float LEARNING_RATE = 0.01f;
+
     void command_loop() {
         mlp::Dataset mnist_train_ds("res/mnist/mnist_train.csv");
         mlp::Dataset mnist_test_ds("res/mnist/mnist_test.csv");
@@ -30,16 +34,12 @@ namespace mlp {
 
         mlp::Context context(&profiler);
 
-        constexpr size_t BATCH_SIZE = 32;
-        // constexpr size_t BATCH_SIZE = 4;
-        constexpr float LEARNING_RATE = 0.01f;
-
         std::unordered_map<std::string, Activation> activation_functions; // maybe seperate hidden and output activation functions
         std::unordered_map<std::string, Loss> loss_functions;
 
         activation_functions["none"] = Activation::NONE;
-        activation_functions["relu"] = Activation::RELU;
         activation_functions["leakyrelu"] = Activation::LEAKY_RELU;
+        activation_functions["relu"] = Activation::RELU;
         activation_functions["sigmoid"] = Activation::SIGMOID;
         activation_functions["tanh"] = Activation::TANH;
         activation_functions["softmax"] = Activation::SOFTMAX;
@@ -55,42 +55,11 @@ namespace mlp {
 
         // base model
         std::vector<size_t> layer_sizes = { 784, 128, 64, 10 };
-        // std::vector<size_t> layer_sizes = { 100, 32, 4 };
         auto [it, _] = models.emplace(BASE_NAME, context);
-        it->second.init(layer_sizes, BATCH_SIZE);
+        it->second.init(layer_sizes);
 
         mlp::MLP_t* model = &models.at(BASE_NAME);
         std::string model_name = BASE_NAME;
-
-        // mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
-
-        // TestData test_data;
-
-        // std::cout << "testing...\n";
-
-        // commands::test(model, context, mnist_test_ds, test_data);
-
-        // std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
-        // std::cout << "backward passing...\n";
-
-        // // for (size_t i = 0; i < mnist_train_ds.size() * 2 / BATCH_SIZE; i++) {
-        // for (size_t i = 0; i < 400; i++) {
-        //     mnist_train_ds.parseBatch(batch);
-        //     model->forwardPass(batch);
-        //     model->backwardPass(batch);
-        // }
-
-        // std::cout << "done.\n";
-        // std::cout << "synchronising...\n";
-
-        // context.synchronise();
-
-        // std::cout << "done.\n";
-        // std::cout << "testing...\n";
-
-        // commands::test(model, context, mnist_test_ds, test_data);
-
-        // std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
 
         std::string command;
 
@@ -128,7 +97,7 @@ namespace mlp {
                 std::cout << "\nprint [image data path]\n - Visualise the data in a file in the terminal.\n";
                 std::cout << "\nclassify [image data path] [label: optional]\n - Use the network to classify an image. If a label is given, the error/loss will be printed.\n - Aliases: class, id, identify.\n";
                 std::cout << "\nsave [save path]\n - Save the model data to a file. This includes the name, layer sizes, activation functions, loss function, batch size, and learning rate.\n";
-                std::cout << "\nload [save path]\n - Build a new model using the data from the save file. If a model with the same name already exists, it will not be overwritten.\n";
+                std::cout << "\nload [model name] [save path]\n - Build a new model with the given name using the data from the save file. If a model with the same name already exists, it will not be overwritten.\n";
                 std::cout << "\nexit\n - Terminate the program.\n - Aliases: quit.\n\n";
             }
             else if (cmd == "build") {
@@ -163,14 +132,6 @@ namespace mlp {
 
                 if (split_indices_right.size() == 0) split_indices_right.emplace_back(hidden_sizes.size() - 1);
 
-                // for (size_t i = 0; i < split_indices_left.size(); i++) {
-                //     std::cout << split_indices_left[i] << ",";
-                //     if (i < split_indices_right.size()) {
-                //         std::cout << split_indices_right[i];
-                //     }
-                //     std::cout << "\n";
-                // }
-
                 for (size_t i = 0; i < split_indices_left.size(); i++) {
                     size_t left = split_indices_left[i];
                     size_t right = i < split_indices_right.size() ? split_indices_right[i] : hidden_sizes.size() - 1;
@@ -196,10 +157,6 @@ namespace mlp {
                 }
 
                 layer_sizes.push_back(std::stoi(args.at(4)));
-
-                // for (size_t size : layer_sizes) {
-                //     std::cout << size << "\n";
-                // }
 
                 std::string hidden_activation_str = to_lower(args.at(5));
                 std::string output_activation_str = to_lower(args.at(6));
@@ -227,15 +184,9 @@ namespace mlp {
                 size_t batch_size = args.size() > 8 ? (size_t) std::stoi(args.at(8)) : BATCH_SIZE;
                 float learning_rate = args.size() > 9 ? std::stof(args.at(9)) : LEARNING_RATE;
 
-                // auto [it, inserted] = models.emplace(name, context);
-
-                // if (!inserted) {
-                //     std::cout << "Model with name '" << name << "' already exists, can not create a new model with the same name.\n";
-                //     continue;
-                // }
-
                 auto [it, _] = models.emplace(name, context);
 
+                // it is already checked that a model with the same name does not exist
                 it->second.init(layer_sizes, batch_size, hidden_activation, output_activation, loss_function, learning_rate);
 
                 std::cout << "Created model with name '" << name << "'\n";
@@ -345,9 +296,46 @@ namespace mlp {
                 }
 
                 TestData test_data;
-                commands::test(model, context, dataset, test_data);
+                commands::test(model, dataset, test_data);
 
                 std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
+            }
+            else if (cmd == "save") {
+                if (args.size() < 2) {
+                    std::cout << "Insufficient arguments" << std::endl;
+                    std::cout << "Usage: save [save path]" << std::endl;
+                    continue;
+                }
+
+                std::string& save_path = args.at(1);
+
+                ModelData data;
+                model->exportData(data);
+
+                commands::save(data, save_path);
+            }
+            else if (cmd == "load") {
+                if (args.size() < 3) {
+                    std::cout << "Insufficient arguments" << std::endl;
+                    std::cout << "Usage: load [model name] [save path]" << std::endl;
+                    continue;
+                }
+
+                std::string& name = args.at(1);
+                std::string& save_path = args.at(2);
+
+                if (models.find(name) != models.end()) {
+                    std::cout << "Model with name '" << name << "' already exists, can not create a new model with the same name.\n";
+                    continue;
+                }
+
+                ModelData data;
+
+                commands::load(data, save_path);
+
+                auto [it, _] = models.emplace(name, context);
+
+                it->second.init(data.layer_sizes, data.batch_size, data.hidden_activation, data.output_activation, data.loss_function, data.learning_rate);
             }
             else {
                 std::cout << "Unknown command: '" << cmd << "'\n";

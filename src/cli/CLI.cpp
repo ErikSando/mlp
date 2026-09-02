@@ -62,35 +62,35 @@ namespace mlp {
         mlp::MLP_t* model = &models.at(BASE_NAME);
         std::string model_name = BASE_NAME;
 
-        mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
+        // mlp::Batch batch(BATCH_SIZE, layer_sizes[0]);
 
-        TestData test_data;
+        // TestData test_data;
 
-        std::cout << "testing...\n";
+        // std::cout << "testing...\n";
 
-        commands::test(model, context, mnist_test_ds, test_data);
+        // commands::test(model, context, mnist_test_ds, test_data);
 
-        std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
-        std::cout << "backward passing...\n";
+        // std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
+        // std::cout << "backward passing...\n";
 
-        // for (size_t i = 0; i < mnist_train_ds.size() * 2 / BATCH_SIZE; i++) {
-        for (size_t i = 0; i < 400; i++) {
-            mnist_train_ds.parseBatch(batch);
-            model->forwardPass(batch);
-            model->backwardPass(batch);
-        }
+        // // for (size_t i = 0; i < mnist_train_ds.size() * 2 / BATCH_SIZE; i++) {
+        // for (size_t i = 0; i < 400; i++) {
+        //     mnist_train_ds.parseBatch(batch);
+        //     model->forwardPass(batch);
+        //     model->backwardPass(batch);
+        // }
 
-        std::cout << "done.\n";
-        std::cout << "synchronising...\n";
+        // std::cout << "done.\n";
+        // std::cout << "synchronising...\n";
 
-        context.synchronise();
+        // context.synchronise();
 
-        std::cout << "done.\n";
-        std::cout << "testing...\n";
+        // std::cout << "done.\n";
+        // std::cout << "testing...\n";
 
-        commands::test(model, context, mnist_test_ds, test_data);
+        // commands::test(model, context, mnist_test_ds, test_data);
 
-        std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
+        // std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
 
         std::string command;
 
@@ -314,7 +314,19 @@ namespace mlp {
                     continue;
                 }
 
+                size_t n_epochs = static_cast<size_t>(std::stoi(args.at(1)));
+                std::string& ds_path = args.at(2);
 
+                mlp::Dataset dataset(ds_path);
+
+                if (!dataset.isSetup()) {
+                    std::cout << "Failed to create dataset using path '" << ds_path << "'\n";
+                    continue;
+                }
+
+                std::cout << "Training with " << n_epochs << " epoch/s...\n";
+
+                commands::train(model, dataset, n_epochs);
             }
             else if (cmd == "test") {
                 if (args.size() < 2) {
@@ -323,7 +335,19 @@ namespace mlp {
                     continue;
                 }
 
+                std::string& ds_path = args.at(1);
 
+                mlp::Dataset dataset(ds_path);
+
+                if (!dataset.isSetup()) {
+                    std::cout << "Failed to create dataset using path '" << ds_path << "'\n";
+                    continue;
+                }
+
+                TestData test_data;
+                commands::test(model, context, dataset, test_data);
+
+                std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
             }
             else {
                 std::cout << "Unknown command: '" << cmd << "'\n";

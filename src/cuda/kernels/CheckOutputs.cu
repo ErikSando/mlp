@@ -64,18 +64,43 @@ namespace mlp {
             }
         }
 
+        __global__ void check_outputs_simple_kernel(const float* outputs, const int* labels, const size_t rows, const size_t cols, int* correct, int* classifications) {
+            unsigned int row = blockDim.x * blockIdx.x + threadIdx.x;
+
+            if (row >= rows) return;
+
+            float max = -__FLT_MAX__;
+            int classification = -1;
+
+            for (size_t col = 0; col < cols; col++) {
+                float output = outputs[row * cols + col];
+                if (output > max) {
+                    max = output;
+                    classification = (int) col;
+                }
+            }
+
+            classifications[row] = classification;
+
+            if (classification == labels[row]) {
+                atomicAdd(correct, 1);
+            }
+        }
+
         void Context::checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const {
             assert(outputs.rows() == labels.size());
-
-            // correct.zero();
-            // classifications.zero();
 
             Buffer_t device_labels(labels.size() * sizeof(int));
             transfer(device_labels, (void*) labels.data());
 
             cudaError_t err;
 
-            check_outputs_kernel<<<outputs.rows(), BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
+            // check_outputs_kernel<<<outputs.rows(), BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
+
+            // using this simple kernel until I can fix the other one
+
+            unsigned int grid_size = block_count(outputs.rows(), BLOCK_SIZE);
+            check_outputs_simple_kernel<<<grid_size, BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
 
             err = cudaGetLastError();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA check outputs error: ");

@@ -41,8 +41,11 @@ namespace mlp {
         m_file.open(file_path, std::ios::binary);
 
         if (!m_file.is_open()) {
-            throw std::runtime_error("Failed to open file: " + file_path);
+            return;
+            // throw std::runtime_error("Failed to open file: " + file_path);
         }
+
+        m_isSetup = true;
 
         generateLineIndices();
     }

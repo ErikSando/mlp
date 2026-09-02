@@ -52,11 +52,15 @@ namespace mlp {
 
         void resetLine() { m_currentLine = 0; }
 
+        bool isSetup() { return m_isSetup; }
+
         private:
 
         void generateLineIndices();
 
         size_t readLine(const size_t line, char* buffer);
+
+        bool m_isSetup = false;
 
         size_t m_maxLineLength = 0;
         size_t m_fileSize;

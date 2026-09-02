@@ -19,6 +19,7 @@ namespace mlp {
     };
 
     namespace commands {
+        void train(MLP_t* model, Dataset& dataset, size_t n_epochs);
         void test(MLP_t* model, Context& context, Dataset& dataset, TestData& data);
 
         void print_sample(const ImageData& sample);

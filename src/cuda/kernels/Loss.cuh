@@ -3,5 +3,6 @@
 namespace mlp {
     namespace cuda {
         struct CCE;
+        struct MSE;
     }
 }

@@ -31,7 +31,7 @@ namespace mlp {
         mlp::Dataset mnist_train_ds("res/mnist/mnist_train.csv");
         mlp::Dataset mnist_test_ds("res/mnist/mnist_test.csv");
 
-        mlp::Dataset test_ds("res/testing/test_data.csv");
+        // mlp::Dataset test_ds("res/testing/test_data_2.csv");
 
         mlp::Profiler profiler;
 

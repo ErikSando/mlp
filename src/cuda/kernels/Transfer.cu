@@ -7,7 +7,7 @@
 namespace mlp {
     namespace cuda {
         void Context::transfer(float* dest, const Matrix_t& src) const {
-            synchronise();
+            // synchronise();
 
             TaskID task;
             if (m_profiler) task = m_profiler->startTask("Download");

@@ -35,8 +35,6 @@ namespace mlp {
 
         constexpr char seperator = ' ';
 
-        // bool save(MLP_t* model, std::string save_path);
-        // bool load(MLP_t* model, std::string save_path);
         bool save(const ModelData& data, std::string save_path);
         bool load(ModelData& data, std::string save_path);
     }

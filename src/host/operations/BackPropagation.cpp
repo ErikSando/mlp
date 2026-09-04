@@ -10,7 +10,7 @@ namespace mlp {
             const float* a_left, const float* a_right,
             const float* weights,
             const size_t n_left, const size_t n_right, const size_t batch_size,
-            float* gradients, float* dC_da_next
+            float* weight_gradients, float* bias_gradients, float* dC_da_next
         ) {
              for (unsigned int sample = 0; sample < batch_size; sample++) {
                 for (unsigned int left_index = 0; left_index < n_left; left_index++) {
@@ -20,18 +20,23 @@ namespace mlp {
                         float a = a_right[sample * n_right + right_index];
                         float aleft = a_left[sample * n_left + left_index]; // preceding layer activation
 
-                        float da_dz = TActivation::derivative(a); // works for leaky relu, switch to using z later, need to add logits into the argument list
+                        // i think using a to find the derivate instead of z is better, less computations
+                        float da_dz = TActivation::derivative_from_a(a);
                         float dz_dw = aleft;
                         float dC_da = dC_da_gradients[sample * n_right + right_index];
 
                         float dC_dz = dC_da * da_dz;
                         float dC_dw = dC_dz * dz_dw;
+                        float dC_db = dC_dz; // dC/db = dC/dz * dz/db, and dz/db = 1 therefore dC/db = dC/dz
 
                         float dz_da_left = weights[weight_index];
                         float dC_da_left = dC_dz * dz_da_left;
 
                         dC_da_next[sample * n_left + left_index] += dC_da_left;
-                        gradients[weight_index] += dC_dw / batch_size;
+                        weight_gradients[weight_index] += dC_dw / batch_size;
+                        if (left_index == 0) bias_gradients[right_index] += dC_db / batch_size;
+
+                        // if (left_index == 0) std::cout << right_index << ", " << dC_db << "\n";
                     }
                 }
             }
@@ -42,7 +47,7 @@ namespace mlp {
             const float* a_hidden_list, const float* a_output_list,
             const float* weights,
             const size_t n_output, const size_t n_hidden, const size_t batch_size,
-            const int* labels, float* gradients, float* dC_da_hidden_list
+            const int* labels, float* weight_gradients, float* bias_gradients, float* dC_da_hidden_list
         ) {
             for (unsigned int sample = 0; sample < batch_size; sample++) {
                 for (unsigned int hidden_index = 0; hidden_index < n_hidden; hidden_index++) {
@@ -57,6 +62,7 @@ namespace mlp {
 
                         float dC_dz_output = a_output - y; // dC/dz_L = a_L - y
                         float dC_dw_output = a_hidden * dC_dz_output; // dC/dw_L = a_L-1 (a_L - y)    where w_L connects a_L-1 and a_L
+                        float dC_db_output = dC_dz_output; // dC/db = dC/dz * dz/db, and dz/db = 1 therefore dC/db = dC/dz
 
                         float dz_output_da_hidden = weights[weight_index]; // dz_L/da_L-1 = w_L
 
@@ -69,15 +75,23 @@ namespace mlp {
                         float dC_da_hidden = dC_dz_output * dz_output_da_hidden;
 
                         dC_da_hidden_list[sample * n_hidden + hidden_index] += dC_da_hidden;
-                        gradients[weight_index] += dC_dw_output / batch_size;
+                        weight_gradients[weight_index] += dC_dw_output / batch_size;
+                        if (hidden_index == 0) bias_gradients[output_index] += dC_db_output / batch_size;
+
+                        // if (hidden_index == 0) std::cout << output_index << ", " << dC_db_output << "\n";
                     }
                 }
             }
         }
 
-        void optimise_layer(float* weights, const float* gradients, const size_t size, const float learning_rate) {
-            for (size_t i = 0; i < size; i++) {
-                weights[i] -= gradients[i] * learning_rate;
+        void optimise_layer(float* weights, float* biases, const float* weight_gradients, const float* bias_gradients, const size_t rows, const size_t columns, const float learning_rate) {
+            for (size_t c = 0; c < columns; c++) {
+                biases[c] -= bias_gradients[c] * learning_rate;
+
+                for (size_t r = 0; r < rows; r++) {
+                    size_t i = r * columns + c;
+                    weights[i] -= weight_gradients[i] * learning_rate;
+                }
             }
         }
 
@@ -86,13 +100,14 @@ namespace mlp {
             const Matrix_t& left_activations, const Matrix_t& right_activations,
             const Matrix_t& weights,
             const Activation activation,
-            Matrix_t& gradients, Matrix_t& dC_da_next
+            Matrix_t& weight_gradients, Matrix_t& bias_gradients, Matrix_t& dC_da_next
         ) const {
             assert(left_activations.rows() == right_activations.rows());
             assert(weights.size() == left_activations.columns() * right_activations.columns());
             assert(dC_da.size() == right_activations.size());
             assert(dC_da_next.size() == left_activations.size());
-            assert(gradients.size() == weights.size());
+            assert(weight_gradients.size() == weights.size());
+            assert(bias_gradients.size() == right_activations.columns());
 
             switch (activation) {
                 case Activation::SIGMOID:
@@ -109,7 +124,7 @@ namespace mlp {
                         left_activations.data(), right_activations.data(),
                         weights.data(),
                         left_activations.columns(), right_activations.columns(), left_activations.rows(),
-                        gradients.data(), dC_da_next.data()
+                        weight_gradients.data(), bias_gradients.data(), dC_da_next.data()
                     );
                 break;
 
@@ -119,7 +134,7 @@ namespace mlp {
                         left_activations.data(), right_activations.data(),
                         weights.data(),
                         left_activations.columns(), right_activations.columns(), left_activations.rows(),
-                        gradients.data(), dC_da_next.data()
+                        weight_gradients.data(), bias_gradients.data(), dC_da_next.data()
                     );
                 break;
 
@@ -129,7 +144,7 @@ namespace mlp {
                         left_activations.data(), right_activations.data(),
                         weights.data(),
                         left_activations.columns(), right_activations.columns(), left_activations.rows(),
-                        gradients.data(), dC_da_next.data()
+                        weight_gradients.data(), bias_gradients.data(), dC_da_next.data()
                     );
                 break;
             }
@@ -139,26 +154,79 @@ namespace mlp {
             const Matrix_t& last_hidden_activations, const Matrix_t& output_activations,
             const Matrix_t& weights,
             const std::vector<int>& labels,
-            const Activation activation, const Loss loss,
-            Matrix_t& gradients, Matrix_t& dC_da_hidden
+            // const Activation activation, const Loss loss,
+            const OALP al_pair,
+            Matrix_t& weight_gradients, Matrix_t& bias_gradients, Matrix_t& dC_da_hidden
         ) const {
             assert(last_hidden_activations.rows() == output_activations.rows());
             assert(weights.size() == last_hidden_activations.columns() * output_activations.columns());
             assert(dC_da_hidden.size() == last_hidden_activations.size());
-            assert(gradients.size() == weights.size());
+            assert(weight_gradients.size() == weights.size());
+            assert(bias_gradients.size() == output_activations.columns());
 
-            compute_output_gradients<Softmax, CCE>(
-                last_hidden_activations.data(), output_activations.data(),
-                weights.data(),
-                output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
-                labels.data(), gradients.data(), dC_da_hidden.data()
-            );
+            // const auto it = AL_PAIRS.find({ activation, loss });
+
+            // if (it == AL_PAIRS.end()) {
+            //     throw std::runtime_error("Invalid output activation function + loss function pair");
+            // }
+
+            // switch (it->second) {
+            switch (al_pair) {
+                case OALP::NONE_CCE:
+                    compute_output_gradients<NoActivation, CCE>(
+                        last_hidden_activations.data(), output_activations.data(),
+                        weights.data(),
+                        output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
+                        labels.data(), weight_gradients.data(), bias_gradients.data(), dC_da_hidden.data()
+                    );
+                break;
+
+                case OALP::NONE_MSE:
+                    compute_output_gradients<NoActivation, MSE>(
+                        last_hidden_activations.data(), output_activations.data(),
+                        weights.data(),
+                        output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
+                        labels.data(), weight_gradients.data(), bias_gradients.data(), dC_da_hidden.data()
+                    );
+
+                break;
+
+                case OALP::SOFTMAX_CCE:
+                    compute_output_gradients<Softmax, CCE>(
+                        last_hidden_activations.data(), output_activations.data(),
+                        weights.data(),
+                        output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
+                        labels.data(), weight_gradients.data(), bias_gradients.data(), dC_da_hidden.data()
+                    );
+                break;
+
+                case OALP::SOFTMAX_MSE:
+                    compute_output_gradients<Softmax, MSE>(
+                        last_hidden_activations.data(), output_activations.data(),
+                        weights.data(),
+                        output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
+                        labels.data(), weight_gradients.data(), bias_gradients.data(), dC_da_hidden.data()
+                    );
+                break;
+
+                default:
+                    throw std::runtime_error("How did we get here?");
+                break;
+            }
+
+            // compute_output_gradients<Softmax, CCE>(
+            //     last_hidden_activations.data(), output_activations.data(),
+            //     weights.data(),
+            //     output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
+            //     labels.data(), weight_gradients.data(), bias_gradients.data(), dC_da_hidden.data()
+            // );
         }
 
-        void Context::optimiseLayer(Matrix_t& weights, const Matrix_t& gradients, const float learning_rate) const {
-            assert(weights.size() == gradients.size());
+        void Context::optimiseLayer(Matrix_t& weights, Matrix_t& biases, const Matrix_t& weight_gradients, const Matrix_t& bias_gradients, const float learning_rate) const {
+            assert(weights.size() == weight_gradients.size());
+            assert(biases.size() == bias_gradients.size());
 
-            optimise_layer(weights.data(), gradients.data(), weights.size(), learning_rate);
+            optimise_layer(weights.data(), biases.data(), weight_gradients.data(), bias_gradients.data(), weights.rows(), weights.columns(), learning_rate);
         }
     }
 }

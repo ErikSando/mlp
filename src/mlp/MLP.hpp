@@ -93,6 +93,7 @@ namespace mlp {
         size_t m_batchSize;
         float m_learningRate;
         Loss m_lossFunction;
+        OALP m_alPair; // output activation function + loss function pair
     };
 }
 

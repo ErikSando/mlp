@@ -36,9 +36,6 @@ namespace mlp {
                 return false;
             }
 
-            // const Context& context = model->getContext();
-            // const std::vector<MLP_t::Layer_t_up>& layers = model->getLayers();
-
             std::string line;
 
             if (!std::getline(file, line)) {

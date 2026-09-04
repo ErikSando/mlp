@@ -29,57 +29,6 @@ namespace mlp {
     }
 
     namespace commands {
-        // char seperator = ' ';
-
-        // bool save(MLP_t* model, std::string save_path) {
-        //     std::ofstream file(save_path);
-
-        //     if (!file.is_open()) {
-        //         std::cerr << "Error: failed to open file '" << save_path << "'\n";
-        //         return false;
-        //     }
-
-        //     const Context& context = model->getContext();
-        //     const std::vector<MLP_t::Layer_t_up>& layers = model->getLayers();
-
-        //     ModelData data;
-        //     model->getData(data);
-
-        //     for (size_t layer_size : data.layer_sizes) {
-        //         file << layer_size << ",";
-        //     }
-        //     file << "\n";
-
-        //     file << activation_string(data.hidden_activation) << "," << activation_string(data.output_activation) << "\n";
-
-        //     file << loss_string(data.loss_function) << "\n";
-        //     file << data.batch_size << "\n";
-        //     file << data.learning_rate << "\n";
-
-        //     for (size_t i = 1; i < layers.size(); i++) { // input layer doesn't have weights, so start at index 1 to skip it
-        //         const MLP_t::Layer_t_up& layer = layers.at(i);
-        //         std::vector<float> host_weights(layer->weights.size());
-        //         std::vector<float> host_biases(layer->biases.size());
-
-        //         context.transfer(host_weights.data(), layer->weights);
-        //         context.transfer(host_biases.data(), layer->biases);
-
-        //         for (float weight : host_weights) {
-        //             file << weight << ",";
-        //         }
-        //         file << "\n";
-
-        //         for (float bias : host_biases) {
-        //             file << bias << ",";
-        //         }
-        //         file << "\n";
-        //     }
-
-        //     file.close();
-
-        //     return true;
-        // }
-
         bool save(const ModelData& data, std::string save_path) {
             std::ofstream file(save_path);
 

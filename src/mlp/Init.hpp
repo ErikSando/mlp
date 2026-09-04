@@ -19,6 +19,14 @@ namespace mlp {
         m_lossFunction = loss_function;
         m_learningRate = learning_rate;
 
+        const auto it = AL_PAIRS.find({ output_activation, loss_function });
+
+        if (it == AL_PAIRS.end()) {
+            throw std::runtime_error("Invalid output activation function + loss function pair");
+        }
+
+        m_alPair = it->second;
+
         if (layer_sizes.size() < 2) {
             throw std::runtime_error("At least 2 layers are required");
             return;

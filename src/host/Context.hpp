@@ -47,18 +47,19 @@ namespace mlp {
                 const Matrix_t& left_activations, const Matrix_t& right_activations,
                 const Matrix_t& weights,
                 const Activation activation,
-                Matrix_t& gradients, Matrix_t& dC_da_next
+                Matrix_t& weight_gradients, Matrix_t& bias_gradients, Matrix_t& dC_da_next
             ) const; // hidden layers
 
             void computeOutputGradients(
                 const Matrix_t& last_hidden_activations, const Matrix_t& output_activations,
                 const Matrix_t& weights,
                 const std::vector<int>& labels,
-                const Activation activation, const Loss loss,
-                Matrix_t& gradients, Matrix_t& dC_da_hidden
+                // const Activation activation, const Loss loss,
+                const OALP al_pair,
+                Matrix_t& weight_gradients, Matrix_t& bias_gradients, Matrix_t& dC_da_hidden
             ) const; // output layer
 
-            void optimiseLayer(Matrix_t& weights, const Matrix_t& gradients, const float learning_rate) const;
+            void optimiseLayer(Matrix_t& weights, Matrix_t& biases, const Matrix_t& weight_gradients, const Matrix_t& bias_gradients, const float learning_rate) const;
 
             void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const;
 

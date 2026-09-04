@@ -4,7 +4,12 @@
 
 namespace mlp {
     namespace cuda {
-        Task::Task(const char* name) : m_name(name) {
+        // Task::Task(const std::string name) : m_name(name) {
+        //     cudaEventCreate(&m_start);
+        //     cudaEventCreate(&m_end);
+        // }
+
+        Task::Task() {
             cudaEventCreate(&m_start);
             cudaEventCreate(&m_end);
         }
@@ -20,19 +25,24 @@ namespace mlp {
 
         void Task::end() {
             cudaEventRecord(m_end);
-        }
 
-        float Task::getDuration() {
-            if (m_duration > 0) return m_duration;
+            m_count++;
+
+            float duration;
 
             cudaEventSynchronize(m_end);
-            cudaEventElapsedTime(&m_duration, m_start, m_end);
+            cudaEventElapsedTime(&duration, m_start, m_end);
 
-            return m_duration;
+            if (duration < m_min || m_count == 1) m_min = duration;
+            if (duration > m_max) m_max = duration;
+
+            m_duration += duration;
+
+            m_average = m_duration / (float) m_count;
         }
 
-        void Task::print() {
-            std::cout << m_name << ": " << m_duration << " ms\n";
-        }
+        // void Task::print() {
+        //     std::cout << m_name << ": " << m_duration << " ms\n";
+        // }
     }
 }

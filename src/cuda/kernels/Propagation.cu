@@ -102,8 +102,7 @@ namespace mlp {
                 block_count(inputs.rows(), TILE_SIZE)
             );
 
-            TaskID task;
-            if (m_profiler) task = m_profiler->startTask("Layer propagation");
+            if (m_profiler) m_profiler->startTask("Propagation");
 
             switch (activation) {
                 case Activation::SIGMOID:
@@ -125,13 +124,12 @@ namespace mlp {
                 case Activation::SOFTMAX: {
                     propagate_kernel_tiled<<<grid, block>>>(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
 
-                    TaskID sm_task;
-                    if (m_profiler) sm_task = m_profiler->startTask("Softmax"); // this is like a sub task, it overlaps with layer propagation, but i havent accounted for this in the profiler
+                    if (m_profiler) m_profiler->startTask("Softmax"); // this is like a sub task, it overlaps with layer propagation, but i havent accounted for this in the profiler
 
                     // logits = activations here, but I am using logits as inputs and activations as outputs because it makes sense
                     softmax_kernel<<<inputs.rows(), BLOCK_SIZE>>>(logits.data(), activations.data(), logits.rows(), logits.columns());
 
-                    if (m_profiler) m_profiler->endTask(sm_task);
+                    if (m_profiler) m_profiler->endTask("Softmax");
 
                     break;
                 }
@@ -141,7 +139,7 @@ namespace mlp {
                 break;
             }
 
-            if (m_profiler) m_profiler->endTask(task);
+            if (m_profiler) m_profiler->endTask("Propagation");
 
             err = cudaGetLastError();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA layer propagation error: ");

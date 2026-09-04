@@ -95,12 +95,16 @@ namespace mlp {
 
             cudaError_t err;
 
+            if (m_profiler) m_profiler->startTask("Check Outputs");
+
             // check_outputs_kernel<<<outputs.rows(), BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
 
             // using this simple kernel until I can fix the other one
 
             unsigned int grid_size = block_count(outputs.rows(), BLOCK_SIZE);
             check_outputs_simple_kernel<<<grid_size, BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
+
+            if (m_profiler) m_profiler->endTask("Check Outputs");
 
             err = cudaGetLastError();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA check outputs error: ");

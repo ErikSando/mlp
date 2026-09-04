@@ -136,6 +136,8 @@ namespace mlp {
             float a_output = a_output_list[sample * n_output + output_index];
             float a_hidden = a_hidden_list[sample * n_hidden + hidden_index];
 
+            // this is using softmax + cce right now, need to generalise
+
             // if constexpr (std::is_same_v<TOALP, SOFTMAX_NONE> && std::is_same_v) {}
             float y = 0.0f;
             if (output_index == labels[sample]) y = 1.0f;
@@ -184,6 +186,8 @@ namespace mlp {
 
             cudaError_t err;
 
+            if (m_profiler) m_profiler->startTask("Compute Hidden Layer Gradients");
+
             dim3 block(8, 8, 8);
 
             dim3 grid(
@@ -191,9 +195,6 @@ namespace mlp {
                 block_count(right_activations.columns(), block.y),
                 block_count(right_activations.rows(), block.z)
             );
-
-            err = cudaGetLastError();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA error before hidden layer gradients: ");
 
             compute_hidden_gradients_kernel<LeakyReLU><<<grid, block>>>(
                 dC_da.data(),
@@ -203,6 +204,8 @@ namespace mlp {
                 weight_gradients.data(), bias_gradients.data(), dC_da_next.data()
             );
 
+            if (m_profiler) m_profiler->endTask("Compute Hidden Layer Gradients");
+
             err = cudaGetLastError();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute hidden layer gradients error: ");
         }
@@ -210,7 +213,6 @@ namespace mlp {
         void Context::computeOutputGradients(
             const Matrix_t& last_hidden_activations, const Matrix_t& output_activations, const Matrix_t& weights,
             const std::vector<int>& labels,
-            // const Activation activation, const Loss loss,
             const OALP al_pair,
             Matrix_t& weight_gradients, Matrix_t& bias_gradients, Matrix_t& dC_da_hidden
         ) const {
@@ -235,6 +237,8 @@ namespace mlp {
 
             // intelli sense was acting up, so ill leave the template parameters how they were and try change it later so i dont need this switch case
             // i want to use compile time branching in the kernel to split behaviour based on the output activation and loss function
+
+            if (m_profiler) m_profiler->startTask("Compute Output Layer Gradients");
 
             switch (al_pair) {
                 case OALP::NONE_CCE:
@@ -278,19 +282,7 @@ namespace mlp {
                 break;
             }
 
-            // compute_output_gradients_kernel<Softmax, CCE><<<grid, block>>>(
-            //     last_hidden_activations.data(), output_activations.data(), weights.data(),
-            //     output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
-            //     (int*) device_labels.data(),
-            //     gradients.data(), dC_da_hidden.data()
-            // );
-
-            // compute_output_gradients_kernel<al_pair><<<grid, block>>>(
-            //     last_hidden_activations.data(), output_activations.data(), weights.data(),
-            //     output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
-            //     (const int*) device_labels.data(),
-            //     weight_gradients.data(), bias_gradients.data(), dC_da_hidden.data()
-            // );
+            if (m_profiler) m_profiler->endTask("Compute Output Layer Gradients");
 
             err = cudaGetLastError();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute output layer gradients error: ");
@@ -302,9 +294,13 @@ namespace mlp {
 
             cudaError_t err;
 
+            if (m_profiler) m_profiler->startTask("Optimise Layer");
+
             unsigned int grid_size = block_count(weights.size(), TILE_SIZE);
 
             optimise_layer_kernel<<<grid_size, TILE_SIZE>>>(weights.data(), biases.data(), weight_gradients.data(), bias_gradients.data(), weights.size(), biases.size(), learning_rate);
+
+            if (m_profiler) m_profiler->endTask("Optimise Layer");
 
             err = cudaGetLastError();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA optimise layer error: ");

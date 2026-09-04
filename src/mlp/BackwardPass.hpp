@@ -6,8 +6,6 @@ namespace mlp {
         assert(m_batchSize == batch.size);
         assert(m_batchSize == batch.labels.size());
 
-        // using Layer_t_up = std::unique_ptr<Layer_t>;
-
         Layer_t_up& output_layer = m_layers.back();
         Layer_t_up& last_hidden_layer = m_layers.at(m_layers.size() - 2);
 
@@ -23,20 +21,9 @@ namespace mlp {
             last_hidden_layer->activations, output_layer->activations,
             output_layer->weights,
             batch.labels,
-            // output_layer->activation, m_lossFunction,
             m_alPair,
             weight_gradients.back(), bias_gradients.back(), dC_da.back()
         );
-
-        // std::vector<float> host_bias_gradients(bias_gradients.back().size());
-
-        // m_context.transfer(host_bias_gradients.data(), bias_gradients.back());
-
-        // std::cout << "Output bias gradients\n\n";
-        // for (float gradient : host_bias_gradients) {
-        //     std::cout << gradient << " ";
-        // }
-        // std::cout << "\n\n";
 
         for (size_t l = m_layers.size() - 2; l > 0; l--) {
             Layer_t_up& layer = m_layers[l];
@@ -53,16 +40,6 @@ namespace mlp {
                 layer->activation,
                 weight_gradients.back(), bias_gradients.back(), dC_da.back()
             );
-
-            // std::vector<float> host_bias_gradients(bias_gradients.back().size());
-
-            // m_context.transfer(host_bias_gradients.data(), bias_gradients.back());
-
-            // std::cout << "Hidden layer bias gradients\n\n";
-            // for (float gradient : host_bias_gradients) {
-            //     std::cout << gradient << " ";
-            // }
-            // std::cout << "\n\n";
         }
 
         for (int i = weight_gradients.size() - 1; i >= 0; i--) {

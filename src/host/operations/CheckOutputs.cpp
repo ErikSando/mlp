@@ -28,7 +28,11 @@ namespace mlp {
             // correct.zero();
             // classifications.zero();
 
+            if (m_profiler) m_profiler->startTask("Check Outputs");
+
             check_outputs(outputs.data(), labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
+
+            if (m_profiler) m_profiler->endTask("Check Outputs");
         }
     }
 }

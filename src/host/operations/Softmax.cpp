@@ -43,7 +43,7 @@ namespace mlp {
 
             softmax_op(inputs.data(), outputs.data(), inputs.rows(), inputs.columns());
 
-            if (m_profiler) m_profiler->endTask();
+            if (m_profiler) m_profiler->endTask("Softmax");
         }
     }
 }

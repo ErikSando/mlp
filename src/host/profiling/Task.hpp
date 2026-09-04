@@ -10,23 +10,25 @@ namespace mlp {
         class Task {
             public:
 
-            Task(const char* name) : m_name(name) {}
-
             void start();
             void end();
 
-            void print();
-
-            const char* getName() { return m_name; }
-            float getDuration() { return m_duration; };
+            float getDuration() const { return m_duration; };
+            float getMin() const { return m_min; }
+            float getMax() const { return m_max; }
+            float getAverage() const { return m_average; }
 
             private:
 
-            const char* m_name;
-
             timestamp_t m_start;
             timestamp_t m_end;
-            float m_duration;
+
+            float m_duration = 0.0f;
+            float m_min = 0.0f;
+            float m_max = 0.0f;
+            float m_average = 0.0f;
+
+            size_t m_count = 0;
         };
     }
 }

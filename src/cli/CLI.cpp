@@ -33,7 +33,7 @@ namespace mlp {
 
         // mlp::Dataset test_ds("res/testing/test_data_2.csv");
 
-        mlp::Profiler profiler;
+        mlp::Profiler profiler(PROFILER_NAME);
 
         mlp::Context context(&profiler);
 
@@ -61,6 +61,8 @@ namespace mlp {
         mlp::MLP_t* model = &models.at(BASE_NAME);
         std::string model_name = BASE_NAME;
 
+        bool print_profile = false; // maybe i can just rely on the enabled member bool in the profiler class
+
         std::string command;
 
         while (true) {
@@ -85,17 +87,19 @@ namespace mlp {
             else if (cmd == "help") {
                 std::cout << "\nhelp\n - Displays this menu.\n";
                 std::cout << "\nbuild [name] [no. inputs] [hidden layer sizes] [no. outputs] [hidden activiation] [output activation] [loss] [batch size: optional] [learning rate: optional]\
-                \n - Build a model with the given parameters. For hidden layer sizes, give values seperated by commas e.g. 128,64 (without spaces). For no hidden layers leave any non-number character. \
-                If no value is given, the default batch size is 32, and the default learning rate is 0.02.\
-                \n Hidden activation functions:\n - none, relu, leakyrelu, sigmoid, tanh.\
-                \n Output activation functions:\n - none, softmax.\
-                \n Loss functions:\n - cce, mse.\n";
+\n - Build a model with the given parameters. For hidden layer sizes, give values seperated by commas e.g. 128,64 (without spaces). For no hidden layers leave any non-number character. \
+If no value is given, the default batch size is 32, and the default learning rate is 0.01.\
+\n Hidden activation functions:\n - none, relu, leakyrelu, sigmoid, tanh.\
+\n Output activation functions:\n - none, softmax.\
+\n Loss functions:\n - cce, mse.\n";
                 std::cout << "\nactiviate [name]\n - Set the model with the given name as the current model. Any commands ran will use this model.\n";
                 std::cout << "\ninfo\n - Display information about the model: layer sizes, activation functions, loss function, batch size, and learning rate.\n";
                 std::cout << "\train [no. epochs] [dataset file path]\n - Train the model with the specified number of epochs, using the specified dataset file.\n";
                 std::cout << "\ntest [dataset file path] [dataset file path]\n - Test the model's accuracy over one epoch, using the specified dataset file.\n";
                 std::cout << "\nprint [image data path]\n - Visualise the data in a file in the terminal.\n";
                 std::cout << "\nclassify [image data path] [label: optional]\n - Use the network to classify an image. If a label is given, the error/loss will be printed.\n - Aliases: class, id, identify.\n";
+                std::cout << "\nprofile [optional: value]\n - Entering this command with no arguments will print the time spent on tasks tracked by the profiler during the last use of the test or train command.\
+                \n   If an argument is given (e.g. true, false), it will be used to set whether the profiler automatically prints after the test and train commands.\n";
                 std::cout << "\nsave [save path]\n - Save the model data to a file. This includes the name, layer sizes, activation functions, loss function, batch size, and learning rate.\n";
                 std::cout << "\nload [model name] [save path]\n - Build a new model with the given name using the data from the save file. If a model with the same name already exists, it will not be overwritten.\n";
                 std::cout << "\nexit\n - Terminate the program.\n - Aliases: quit.\n\n";
@@ -237,8 +241,8 @@ namespace mlp {
             }
             else if (cmd == "print") {
                 if (args.size() < 2) {
-                    std::cout << "Insufficient arguments" << std::endl;
-                    std::cout << "Usage: print [image data path]" << std::endl;
+                    std::cout << "\nInsufficient arguments\n";
+                    std::cout << "Usage: print [image data path]\n\n";
                     continue;
                 }
 
@@ -255,8 +259,8 @@ namespace mlp {
             }
             else if (cmd == "id" || cmd == "class" || cmd == "classify" || cmd == "identify") {
                 if (args.size() < 2) {
-                    std::cout << "Insufficient arguments" << std::endl;
-                    std::cout << "Usage: " << cmd << " [image data path] [digit: optional]" << std::endl;
+                    std::cout << "\nInsufficient arguments\n";
+                    std::cout << "Usage: " << cmd << " [image data path] [digit: optional]\n\n";
                     continue;
                 }
 
@@ -274,12 +278,17 @@ namespace mlp {
                     continue;
                 }
 
+                bool enable = profiler.enabled();
+                profiler.disable();
+
                 commands::classify_sample(model, sample, label);
+
+                if (enable) profiler.enable();
             }
             else if (cmd == "train") {
                 if (args.size() < 3) {
-                    std::cout << "Insufficient arguments" << std::endl;
-                    std::cout << "Usage: train [no. epochs] [dataset file path]" << std::endl;
+                    std::cout << "\nInsufficient arguments\n";
+                    std::cout << "Usage: train [no. epochs] [dataset file path]\n\n";
                     continue;
                 }
 
@@ -289,18 +298,27 @@ namespace mlp {
                 mlp::Dataset dataset(ds_path);
 
                 if (!dataset.isSetup()) {
-                    std::cout << "Failed to create dataset using path '" << ds_path << "'\n";
+                    std::cout << "\nFailed to create dataset using path '" << ds_path << "'\n\n";
                     continue;
                 }
 
-                std::cout << "Training with " << n_epochs << " epoch/s...\n";
+                std::cout << "\nTraining with " << n_epochs << " epoch/s...\n";
+
+                profiler.reset();
+                profiler.startBenchmark();
 
                 commands::train(model, dataset, n_epochs);
+
+                profiler.endBenchmark();
+
+                std::cout << "Training completed\n\n";
+
+                if (print_profile) profiler.print();
             }
             else if (cmd == "test") {
                 if (args.size() < 2) {
-                    std::cout << "Insufficient arguments" << std::endl;
-                    std::cout << "Usage: test [dataset file path]" << std::endl;
+                    std::cout << "\nInsufficient arguments\n";
+                    std::cout << "Usage: test [dataset file path]\n\n";
                     continue;
                 }
 
@@ -309,19 +327,49 @@ namespace mlp {
                 mlp::Dataset dataset(ds_path);
 
                 if (!dataset.isSetup()) {
-                    std::cout << "Failed to create dataset using path '" << ds_path << "'\n";
+                    std::cout << "\nFailed to create dataset using path '" << ds_path << "'\n\n";
                     continue;
                 }
+
+                profiler.reset();
+                profiler.startBenchmark();
 
                 TestData test_data;
                 commands::test(model, dataset, test_data);
 
-                std::cout << "Accuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n";
+                profiler.endBenchmark();
+
+                if (print_profile) profiler.print();
+
+                std::cout << "\nAccuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n\n";
+            }
+            else if (cmd == "profile") {
+                if (args.size() < 2) {
+                    profiler.print();
+                    continue;
+                }
+
+                std::string& value = args.at(1);
+
+                if (value == "true" || value == "t" || value == "yes" || value == "y") {
+                    print_profile = true;
+                    std::cout << "Profiler will automatically print\n";
+                    continue;
+                }
+
+                if (value == "false" || value == "f" || value == "no" || value == "n") {
+                    print_profile = false;
+                    std::cout << "Profiler will not automatically print\n";
+                    continue;
+                }
+
+                std::cout << "Invalid option: '" << args.at(1) << "'\n";
+                std::cout << "Use one out of: true, false, yes, no, t, f, y, n\n";
             }
             else if (cmd == "save") {
                 if (args.size() < 2) {
-                    std::cout << "Insufficient arguments" << std::endl;
-                    std::cout << "Usage: save [save path]" << std::endl;
+                    std::cout << "\nInsufficient arguments\n";
+                    std::cout << "Usage: save [save path]\n\n";
                     continue;
                 }
 
@@ -330,12 +378,17 @@ namespace mlp {
                 ModelData data;
                 model->exportData(data);
 
+                bool enable = profiler.enabled();
+                profiler.disable();
+
                 commands::save(data, save_path);
+
+                if (enable) profiler.enable();
             }
             else if (cmd == "load") {
                 if (args.size() < 3) {
-                    std::cout << "Insufficient arguments" << std::endl;
-                    std::cout << "Usage: load [model name] [save path]" << std::endl;
+                    std::cout << "\nInsufficient arguments\n";
+                    std::cout << "Usage: load [model name] [save path]\n\n";
                     continue;
                 }
 
@@ -349,7 +402,12 @@ namespace mlp {
 
                 ModelData data;
 
+                bool enable = profiler.enabled();
+                profiler.disable();
+
                 bool load_success = commands::load(data, save_path);
+
+                if (enable) profiler.enable();
 
                 if (!load_success) {
                     std::cout << "Failed to load model data from file, can not build model.\n";
@@ -361,7 +419,7 @@ namespace mlp {
                 it->second.init(data);
             }
             else {
-                std::cout << "Unknown command: '" << cmd << "'\n";
+                std::cout << "\nUnknown command: '" << cmd << "'\n\n";
             }
         }
     }

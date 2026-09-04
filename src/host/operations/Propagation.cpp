@@ -68,7 +68,9 @@ namespace mlp {
 
                 case Activation::SOFTMAX:
                     propagate_op(inputs.data(), logits.data(), activations.data(), weights.data(), biases.data(), inputs.rows(), inputs.columns(), activations.columns());
+                    if (m_profiler) m_profiler->startTask("Softmax");
                     softmax_op(logits.data(), activations.data(), logits.rows(), logits.columns());
+                    if (m_profiler) m_profiler->endTask("Softmax");
                 break;
 
                 default:
@@ -76,7 +78,7 @@ namespace mlp {
                 break;
             }
 
-            if (m_profiler) m_profiler->endTask();
+            if (m_profiler) m_profiler->endTask("Propagation");
         }
     }
 }

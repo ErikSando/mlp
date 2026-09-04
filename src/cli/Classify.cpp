@@ -13,7 +13,7 @@ namespace mlp {
 
             model->classify(sample, info);
 
-            std::cout << "Classification:   " << info.classification << "\n";
+            std::cout << "\nClassification:   " << info.classification << "\n\n";
 
             for (size_t i = 0; i < info.outputs.size(); i++) {
                 std::cout << i << ": " << info.outputs[i] << "\n";
@@ -21,7 +21,7 @@ namespace mlp {
 
             if (info.error == UNDEFINED_ERROR) return;
 
-            std::cout << "Error/loss:       " << info.error << "\n";
+            std::cout << "\nError/loss:       " << info.error << "\n\n";
         }
     }
 }

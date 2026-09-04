@@ -18,18 +18,21 @@ namespace mlp {
     using Profiler = cuda::Profiler;
     using Buffer = cuda::Buffer;
     using MLP_t = MLP<Context>;
+    const inline std::string PROFILER_NAME = "CUDA profiler tasks";
     #elif defined(MLP_OPENCL)
     using Matrix = opencl::Matrix;
     using Context = opencl::Context;
     using Profiler = opencl::Profiler;
     using Buffer = opencl::Buffer;
     using MLP_t = MLP<Context>;
+    const inline std::string PROFILER_NAME = "OpenCL profiler tasks";
     #elif defined(MLP_HOST)
     using Matrix = host::Matrix;
     using Context = host::Context;
     using Profiler = host::Profiler;
     using Buffer = host::Buffer;
     using MLP_t = MLP<Context>;
+    const inline std::string PROFILER_NAME = "Host profiler tasks";
     #else
     #error "No compute context has been defined"
     #endif

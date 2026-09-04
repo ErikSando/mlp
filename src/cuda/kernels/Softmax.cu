@@ -185,12 +185,11 @@ namespace mlp {
 
             cudaError_t err;
 
-            TaskID task;
-            if (m_profiler) task = m_profiler->startTask("Softmax");
+            if (m_profiler) m_profiler->startTask("Softmax");
 
             softmax_kernel<<<inputs.rows(), BLOCK_SIZE>>>(inputs.data(), outputs.data(), inputs.rows(), inputs.columns());
 
-            if (m_profiler) m_profiler->endTask(task);
+            if (m_profiler) m_profiler->endTask("Softmax");
 
             err = cudaGetLastError();
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA softmax error: ");

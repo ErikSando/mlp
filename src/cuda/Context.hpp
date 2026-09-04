@@ -87,7 +87,6 @@ namespace mlp {
                 const Matrix_t& last_activations, const Matrix_t& output_activations,
                 const Matrix_t& weights,
                 const std::vector<int>& labels,
-                // const Activation activation, const Loss loss,
                 const OALP al_pair,
                 Matrix_t& weight_gradients, Matrix_t& bias_gradients, Matrix_t& dC_da_hidden
             ) const; // output layer

@@ -35,8 +35,6 @@ namespace mlp {
                         dC_da_next[sample * n_left + left_index] += dC_da_left;
                         weight_gradients[weight_index] += dC_dw / batch_size;
                         if (left_index == 0) bias_gradients[right_index] += dC_db / batch_size;
-
-                        // if (left_index == 0) std::cout << right_index << ", " << dC_db << "\n";
                     }
                 }
             }
@@ -57,6 +55,8 @@ namespace mlp {
                         float a_output = a_output_list[sample * n_output + output_index];
                         float a_hidden = a_hidden_list[sample * n_hidden + hidden_index];
 
+                        // this is using softmax + cce right now, need to generalise
+
                         float y = 0.0f;
                         if (output_index == labels[sample]) y = 1.0f;
 
@@ -66,19 +66,11 @@ namespace mlp {
 
                         float dz_output_da_hidden = weights[weight_index]; // dz_L/da_L-1 = w_L
 
-                        // std::cout << "================\n";
-                        // std::cout << "a = " << a_output << " ; ah = " << a_hidden << "\n";
-                        // std::cout << "w = " << weights[weight_index] << "\n";
-                        // std::cout << "dC/dz = " << dC_dz_output << " ; dC/dw = " << dC_dw_output << "\n";
-                        // std::cout << "dz/dah = " << dz_output_da_hidden << " ; dC/dah = " << dC_dz_output << " * " << dz_output_da_hidden << "\n";
-
                         float dC_da_hidden = dC_dz_output * dz_output_da_hidden;
 
                         dC_da_hidden_list[sample * n_hidden + hidden_index] += dC_da_hidden;
                         weight_gradients[weight_index] += dC_dw_output / batch_size;
                         if (hidden_index == 0) bias_gradients[output_index] += dC_db_output / batch_size;
-
-                        // if (hidden_index == 0) std::cout << output_index << ", " << dC_db_output << "\n";
                     }
                 }
             }
@@ -108,6 +100,8 @@ namespace mlp {
             assert(dC_da_next.size() == left_activations.size());
             assert(weight_gradients.size() == weights.size());
             assert(bias_gradients.size() == right_activations.columns());
+
+            if (m_profiler) m_profiler->startTask("Compute Hidden Layer Gradients");
 
             switch (activation) {
                 case Activation::SIGMOID:
@@ -148,13 +142,14 @@ namespace mlp {
                     );
                 break;
             }
+
+            if (m_profiler) m_profiler->endTask("Compute Hidden Layer Gradients");
         }
 
         void Context::computeOutputGradients(
             const Matrix_t& last_hidden_activations, const Matrix_t& output_activations,
             const Matrix_t& weights,
             const std::vector<int>& labels,
-            // const Activation activation, const Loss loss,
             const OALP al_pair,
             Matrix_t& weight_gradients, Matrix_t& bias_gradients, Matrix_t& dC_da_hidden
         ) const {
@@ -164,13 +159,8 @@ namespace mlp {
             assert(weight_gradients.size() == weights.size());
             assert(bias_gradients.size() == output_activations.columns());
 
-            // const auto it = AL_PAIRS.find({ activation, loss });
+            if (m_profiler) m_profiler->startTask("Compute Output Layer Gradients");
 
-            // if (it == AL_PAIRS.end()) {
-            //     throw std::runtime_error("Invalid output activation function + loss function pair");
-            // }
-
-            // switch (it->second) {
             switch (al_pair) {
                 case OALP::NONE_CCE:
                     compute_output_gradients<NoActivation, CCE>(
@@ -214,19 +204,18 @@ namespace mlp {
                 break;
             }
 
-            // compute_output_gradients<Softmax, CCE>(
-            //     last_hidden_activations.data(), output_activations.data(),
-            //     weights.data(),
-            //     output_activations.columns(), last_hidden_activations.columns(), output_activations.rows(),
-            //     labels.data(), weight_gradients.data(), bias_gradients.data(), dC_da_hidden.data()
-            // );
+            if (m_profiler) m_profiler->endTask("Compute Output Layer Gradients");
         }
 
         void Context::optimiseLayer(Matrix_t& weights, Matrix_t& biases, const Matrix_t& weight_gradients, const Matrix_t& bias_gradients, const float learning_rate) const {
             assert(weights.size() == weight_gradients.size());
             assert(biases.size() == bias_gradients.size());
 
+            if (m_profiler) m_profiler->startTask("Optimise Layer");
+
             optimise_layer(weights.data(), biases.data(), weight_gradients.data(), bias_gradients.data(), weights.rows(), weights.columns(), learning_rate);
+
+            if (m_profiler) m_profiler->endTask("Optimise Layer");
         }
     }
 }

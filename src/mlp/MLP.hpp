@@ -63,7 +63,7 @@ namespace mlp {
         // I removed giving a number of samples, I don't know why I had that in the first place, maybe to look at the first n samples in a batch?
         // I'll add it back later if I need it
         // Just realised, I need to be able to ignore later samples in case the total number of samples in the dataset is not a multiple of the batch size
-        void checkOutputs(const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const;
+        void checkOutputs(const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications, const size_t samples = 0) const;
 
         // Copy the values of the output nodes into the given host memory location
         void copyOutputs(float* host_outputs) const;

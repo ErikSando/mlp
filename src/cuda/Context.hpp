@@ -17,13 +17,13 @@
 #define CUDA_ERROR(err, message)\
     do {\
         std::cout << "\033[31m" << "[Error]\033[0m "\
-                  << message\
+                  << message << ": "\
                   << cudaGetErrorString(err) << '\n'\
                   << "File: " << __FILE__ << '\n'\
                   << "Line: " << __LINE__ << '\n'\
                   << "Function: " << __func__ << '\n';\
         std::abort();\
-    } while (0)
+    } while (0);
 
 namespace mlp {
     namespace cuda {
@@ -41,6 +41,8 @@ namespace mlp {
             using Matrix_t = Matrix;
 
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
+
+            void init() {}
 
             // Transfer data from device memory to host memory
             void transfer(float* dest, const Matrix_t& src) const;
@@ -93,13 +95,13 @@ namespace mlp {
 
             void optimiseLayer(Matrix_t& weights, Matrix& biases, const Matrix_t& weight_gradients, const Matrix_t& bias_gradients, const float learning_rate) const;
 
-            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const;
+            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications, const size_t samples) const;
 
             void computeLoss(const Matrix_t& outputs, const Matrix_t& targets, Matrix_t& result, const Loss loss) const;
 
             inline void synchronise() const {
                 cudaError_t err = cudaDeviceSynchronize();
-                if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+                if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error");
             }
 
             private:

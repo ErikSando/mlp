@@ -1,9 +1,7 @@
 #pragma once
 
-#include <cuda_runtime.h>
-
 namespace mlp {
-    namespace cuda {
+    namespace opencl {
         class Task {
             public:
 
@@ -20,8 +18,8 @@ namespace mlp {
 
             private:
 
-            cudaEvent_t m_start;
-            cudaEvent_t m_end;
+            // cudaEvent_t m_start;
+            // cudaEvent_t m_end;
 
             float m_duration = 0.0f;
             float m_min = 0.0f;

@@ -1,10 +1,10 @@
 #include <format>
 #include <iostream>
 
-#include "host/profiling/Profiler.hpp"
+#include "opencl/profiling/Profiler.hpp"
 
 namespace mlp {
-    namespace host {
+    namespace opencl {
         constexpr size_t MAX_FLOAT_LENGTH = 8;
         constexpr size_t MIN_GAP = 2; // minimum number of spaces between the task name and duration info (e.g. 2 is name  | 0.5 ms)
 

@@ -12,6 +12,7 @@ namespace mlp {
             size_t input_count = model->getInputCount();
             size_t batch_size = model->getBatchSize();
             size_t n_batches = dataset.size() / batch_size;
+            size_t remainder = dataset.size() - n_batches * batch_size;
 
             Buffer correct(sizeof(int));
             Buffer classifications(batch_size * sizeof(int));
@@ -27,11 +28,15 @@ namespace mlp {
                 model->checkOutputs(batch.labels, correct, classifications);
             }
 
+            dataset.parseBatch(batch);
+            model->forwardPass(batch);
+            model->checkOutputs(batch.labels, correct, classifications, remainder);
+
             int host_correct;
 
             context.transfer((void*) &host_correct, correct);
 
-            size_t total = n_batches * batch_size;
+            size_t total = n_batches * batch_size + remainder;
             size_t correct_ul = (size_t) host_correct;
             size_t incorrect = total - correct_ul;
 

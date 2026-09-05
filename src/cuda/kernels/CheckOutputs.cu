@@ -87,10 +87,11 @@ namespace mlp {
             }
         }
 
-        void Context::checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const {
+        void Context::checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications, const size_t samples) const {
             assert(outputs.rows() == labels.size());
+            assert(samples <= outputs.rows());
 
-            Buffer_t device_labels(labels.size() * sizeof(int));
+            Buffer_t device_labels(samples * sizeof(int));
             transfer(device_labels, (void*) labels.data());
 
             cudaError_t err;
@@ -102,12 +103,12 @@ namespace mlp {
             // using this simple kernel until I can fix the other one
 
             unsigned int grid_size = block_count(outputs.rows(), BLOCK_SIZE);
-            check_outputs_simple_kernel<<<grid_size, BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
+            check_outputs_simple_kernel<<<grid_size, BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), samples, outputs.columns(), (int*) correct.data(), (int*) classifications.data());
 
             if (m_profiler) m_profiler->endTask("Check Outputs");
 
             err = cudaGetLastError();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA check outputs error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA check outputs error");
         }
     }
 }

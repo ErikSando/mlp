@@ -23,6 +23,8 @@ namespace mlp {
 
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
 
+            void init() {}
+
             void transfer(float* dest, const Matrix_t& src) const;
             void transfer(Matrix_t& dest, const float* src) const;
             void transfer(Matrix_t& dest, const Matrix_t& src) const;
@@ -60,7 +62,7 @@ namespace mlp {
 
             void optimiseLayer(Matrix_t& weights, Matrix_t& biases, const Matrix_t& weight_gradients, const Matrix_t& bias_gradients, const float learning_rate) const;
 
-            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const;
+            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications, const size_t samples) const;
 
             void computeLoss(const Matrix_t& outputs, const Matrix_t& targets, Matrix_t& result, const Loss loss) const;
 

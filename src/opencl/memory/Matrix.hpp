@@ -4,7 +4,7 @@
 #include <cstring>
 #include <vector>
 
-// #include "CL/cl.h"
+#include "CL/cl.h"
 
 namespace mlp {
     namespace opencl {
@@ -16,8 +16,8 @@ namespace mlp {
 
             void zero();
 
-            // cl_mem& data() { return data; }
-            // const cl_mem& data() const { return data; }
+            cl_mem& data() { return m_data; }
+            const cl_mem& data() const { return m_data; }
 
             constexpr size_t rows() const { return m_rows; }
             constexpr size_t columns() const { return m_cols; }
@@ -29,7 +29,7 @@ namespace mlp {
             size_t m_cols;
             size_t m_size;
 
-            // cl_mem data;
+            cl_mem m_data;
         };
     }
 }

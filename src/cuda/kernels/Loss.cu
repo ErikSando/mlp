@@ -33,7 +33,7 @@ namespace mlp {
             }
 
             err = cudaGetLastError();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute loss error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute loss error");
         }
     }
 }

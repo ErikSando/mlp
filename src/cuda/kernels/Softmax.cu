@@ -192,7 +192,7 @@ namespace mlp {
             if (m_profiler) m_profiler->endTask("Softmax");
 
             err = cudaGetLastError();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA softmax error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA softmax error");
         }
     }
 }

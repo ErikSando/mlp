@@ -36,6 +36,7 @@ namespace mlp {
         mlp::Profiler profiler(PROFILER_NAME);
 
         mlp::Context context(&profiler);
+        context.init();
 
         activation_functions["none"] = Activation::NONE;
         activation_functions["leakyrelu"] = Activation::LEAKY_RELU;
@@ -64,6 +65,8 @@ namespace mlp {
         bool print_profile = false; // maybe i can just rely on the enabled member bool in the profiler class
 
         std::string command;
+
+        profiler.clear();
 
         while (true) {
             std::cout << model_name << " > ";
@@ -304,7 +307,7 @@ If no value is given, the default batch size is 32, and the default learning rat
 
                 std::cout << "\nTraining with " << n_epochs << " epoch/s...\n";
 
-                profiler.reset();
+                profiler.clear();
                 profiler.startBenchmark();
 
                 commands::train(model, dataset, n_epochs);
@@ -313,7 +316,10 @@ If no value is given, the default batch size is 32, and the default learning rat
 
                 std::cout << "Training completed\n\n";
 
-                if (print_profile) profiler.print();
+                if (print_profile) {
+                    profiler.print();
+                    std::cout << '\n';
+                }
             }
             else if (cmd == "test") {
                 if (args.size() < 2) {
@@ -331,7 +337,7 @@ If no value is given, the default batch size is 32, and the default learning rat
                     continue;
                 }
 
-                profiler.reset();
+                profiler.clear();
                 profiler.startBenchmark();
 
                 TestData test_data;
@@ -339,13 +345,18 @@ If no value is given, the default batch size is 32, and the default learning rat
 
                 profiler.endBenchmark();
 
-                if (print_profile) profiler.print();
+                if (print_profile) {
+                    std::cout << '\n';
+                    profiler.print();
+                }
 
                 std::cout << "\nAccuracy: " << (test_data.getAccuracy() * 100) << "% (" << test_data.correct << "/" << test_data.correct + test_data.incorrect << ")\n\n";
             }
             else if (cmd == "profile") {
                 if (args.size() < 2) {
+                    std::cout << '\n';
                     profiler.print();
+                    std::cout << '\n';
                     continue;
                 }
 

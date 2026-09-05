@@ -12,7 +12,7 @@ namespace mlp {
             if (m_profiler) m_profiler->startTask("Download");
 
             cudaError_t err = cudaMemcpy(dest, src.data(), src.size() * sizeof(float), cudaMemcpyDeviceToHost);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
             if (m_profiler) m_profiler->endTask("Download");
         }
@@ -21,7 +21,7 @@ namespace mlp {
             if (m_profiler) m_profiler->startTask("Upload");
 
             cudaError_t err = cudaMemcpy(dest.data(), src, dest.size() * sizeof(float), cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
             if (m_profiler) m_profiler->endTask("Upload");
         }
@@ -30,7 +30,7 @@ namespace mlp {
             if (m_profiler) m_profiler->startTask("Copy");
 
             cudaError_t err = cudaMemcpy(dest.data(), src.data(), dest.size(), cudaMemcpyDeviceToDevice);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
             if (m_profiler) m_profiler->endTask("Copy");
         }
@@ -41,7 +41,7 @@ namespace mlp {
             if (m_profiler) m_profiler->startTask("Download");
 
             cudaError_t err = cudaMemcpy(dest, src.data(), src.size(), cudaMemcpyDeviceToHost);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
             if (m_profiler) m_profiler->endTask("Download");
         }
@@ -50,7 +50,7 @@ namespace mlp {
             if (m_profiler) m_profiler->startTask("Upload");
 
             cudaError_t err = cudaMemcpy(dest.data(), src, dest.size(), cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
             if (m_profiler) m_profiler->endTask("Upload");
         }
@@ -59,7 +59,7 @@ namespace mlp {
             if (m_profiler) m_profiler->startTask("Copy");
 
             cudaError_t err = cudaMemcpy(dest.data(), src.data(), dest.size(), cudaMemcpyDeviceToDevice);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
             if (m_profiler) m_profiler->endTask("Copy");
         }

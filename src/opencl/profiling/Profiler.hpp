@@ -1,20 +1,42 @@
 #pragma once
 
+#include <memory>
+#include <unordered_map>
+#include <vector>
+
+#include "opencl/profiling/Task.hpp"
+
 namespace mlp {
     namespace opencl {
         class Profiler {
             public:
 
-            Profiler(const char* name = "Profiler tasks") : m_name(name) {}
+            Profiler(const std::string& name = "Profiler tasks") : m_name(name) {}
 
-            void startTask(const char* name);
-            void endTask();
+            void startTask(const std::string& name);
+            void endTask(const std::string& name);
 
-            void print();
+            void startBenchmark(); // measures the total time spent on the CUDA stream between the start and end of the benchmarking period
+            void endBenchmark();
+
+            void clear();
+
+            void print() const;
+
+            void enable() { m_enabled = true; }
+            void disable() { m_enabled = false; }
+
+            bool enabled() const { return m_enabled; }
 
             private:
 
-            const char* m_name;
+            std::string m_name;
+
+            bool m_enabled = true;
+
+            std::unordered_map<std::string, Task> m_tasks;
+
+            std::vector<std::string> m_taskOrder;
         };
     }
 }

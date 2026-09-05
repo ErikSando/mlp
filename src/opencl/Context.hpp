@@ -9,9 +9,21 @@
 #include <cassert>
 #include <iostream>
 
+#include "opencl/memory/Buffer.hpp"
 #include "opencl/memory/Matrix.hpp"
 #include "opencl/profiling/Profiler.hpp"
 #include "enums/Enums.hpp"
+
+#define CL_ERROR(err, message)\
+    do {\
+        std::cout << "\033[31m" << "[Error]\033[0m "\
+                  << message << ": "\
+                  << err << '\n'\
+                  << "File: " << __FILE__ << '\n'\
+                  << "Line: " << __LINE__ << '\n'\
+                  << "Function: " << __func__ << '\n';\
+        std::abort();\
+    } while (0);
 
 namespace mlp {
     namespace opencl {
@@ -30,9 +42,20 @@ namespace mlp {
 
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
 
-            void transfer(const Matrix_t& src, float* dest) const;
-            void transfer(const float* src, Matrix_t& dest) const;
-            void transfer(const Matrix_t& src, Matrix_t& dest) const;
+            void init();
+
+            /*
+                TODO:
+
+                initialisation
+                get Buffer and Matrix working (and transfer functions)
+                matrix multiplication, addition
+
+            */
+
+            void transfer(float* dest, const Matrix_t& src) const;
+            void transfer(Matrix_t& dest, const float* src) const;
+            void transfer(Matrix_t& dest, const Matrix_t& src) const;
 
             void transfer(void* dest, const Buffer_t& src) const;
             void transfer(Buffer_t& dest, const void* src) const;
@@ -83,6 +106,14 @@ namespace mlp {
             // probably need something equivalent to cuda device synchronise
 
             private:
+
+            cl_platform_info m_platformInfo;
+            cl_platform_id m_platformIDs[100];
+            cl_device_id m_deviceID;
+            cl_ulong m_globalMemSize;
+            cl_ulong m_maxAllocSize;
+            cl_context m_clContext;
+            cl_command_queue m_commandQueue;
 
             Profiler* m_profiler = nullptr;
         };

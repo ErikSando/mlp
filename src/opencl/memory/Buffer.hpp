@@ -2,6 +2,8 @@
 
 #include <cstddef>
 
+#include "CL/cl.h"
+
 namespace mlp {
     namespace opencl {
         class Buffer {
@@ -12,8 +14,8 @@ namespace mlp {
 
             void zero();
 
-            void* data() { return m_data; }
-            const void* data() const { return m_data; }
+            cl_mem& data() { return m_data; }
+            const cl_mem& data() const { return m_data; }
 
             constexpr size_t size() const { return m_size; }
 
@@ -21,7 +23,7 @@ namespace mlp {
 
             size_t m_size;
 
-            void* m_data = nullptr;
+            cl_mem m_data;
         };
     }
 }

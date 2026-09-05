@@ -207,7 +207,7 @@ namespace mlp {
             if (m_profiler) m_profiler->endTask("Compute Hidden Layer Gradients");
 
             err = cudaGetLastError();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute hidden layer gradients error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute hidden layer gradients error");
         }
 
         void Context::computeOutputGradients(
@@ -285,7 +285,7 @@ namespace mlp {
             if (m_profiler) m_profiler->endTask("Compute Output Layer Gradients");
 
             err = cudaGetLastError();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute output layer gradients error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute output layer gradients error");
         }
 
         void Context::optimiseLayer(Matrix_t& weights, Matrix& biases, const Matrix_t& weight_gradients, const Matrix_t& bias_gradients, const float learning_rate) const {
@@ -303,7 +303,7 @@ namespace mlp {
             if (m_profiler) m_profiler->endTask("Optimise Layer");
 
             err = cudaGetLastError();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA optimise layer error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA optimise layer error");
         }
     }
 }

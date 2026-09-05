@@ -4,11 +4,6 @@
 
 namespace mlp {
     namespace cuda {
-        // Task::Task(const std::string name) : m_name(name) {
-        //     cudaEventCreate(&m_start);
-        //     cudaEventCreate(&m_end);
-        // }
-
         Task::Task() {
             cudaEventCreate(&m_start);
             cudaEventCreate(&m_end);
@@ -40,9 +35,5 @@ namespace mlp {
 
             m_average = m_duration / (float) m_count;
         }
-
-        // void Task::print() {
-        //     std::cout << m_name << ": " << m_duration << " ms\n";
-        // }
     }
 }

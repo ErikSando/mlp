@@ -35,15 +35,15 @@ namespace mlp {
                 if (states) cudaFree(states);
 
                 err = cudaMalloc(&states, matrix.size() * sizeof(curandState));
-                if (err != cudaSuccess) CUDA_ERROR(err, "CUDA malloc error: ");
+                if (err != cudaSuccess) CUDA_ERROR(err, "CUDA malloc error");
 
                 init_rng<<<grid_size, BLOCK_SIZE>>>(states, time(nullptr), matrix.size());
 
                 err = cudaGetLastError();
-                if (err != cudaSuccess) CUDA_ERROR(err, "CUDA init RNG error: ");
+                if (err != cudaSuccess) CUDA_ERROR(err, "CUDA init RNG error");
 
                 err = cudaDeviceSynchronize();
-                if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+                if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error");
 
                 allocated = matrix.size();
             }
@@ -51,10 +51,10 @@ namespace mlp {
             randomize_kernel<<<grid_size, BLOCK_SIZE>>>(matrix.data(), states, matrix.size(), min, max);
 
             err = cudaGetLastError();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix randomise error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA matrix randomise error");
 
             err = cudaDeviceSynchronize();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error");
         }
     }
 }

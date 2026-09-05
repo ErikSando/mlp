@@ -142,7 +142,7 @@ namespace mlp {
             if (m_profiler) m_profiler->endTask("Propagation");
 
             err = cudaGetLastError();
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA layer propagation error: ");
+            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA layer propagation error");
         }
     }
 }

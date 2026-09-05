@@ -22,15 +22,13 @@ namespace mlp {
             }
         }
 
-        void Context::checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications) const {
+        void Context::checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications, const size_t samples) const {
             assert(outputs.rows() == labels.size());
-
-            // correct.zero();
-            // classifications.zero();
+            assert(samples <= outputs.rows());
 
             if (m_profiler) m_profiler->startTask("Check Outputs");
 
-            check_outputs(outputs.data(), labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
+            check_outputs(outputs.data(), labels.data(), samples, outputs.columns(), (int*) correct.data(), (int*) classifications.data());
 
             if (m_profiler) m_profiler->endTask("Check Outputs");
         }

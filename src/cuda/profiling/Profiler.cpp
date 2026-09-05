@@ -6,7 +6,7 @@
 namespace mlp {
     namespace cuda {
         constexpr size_t MAX_FLOAT_LENGTH = 8;
-        constexpr size_t MIN_GAP = 2; // minimum number of spaces between the colon and task duration
+        constexpr size_t MIN_GAP = 2; // minimum number of spaces between the task name and duration info (e.g. 2 is name  | 0.5 ms)
 
         const std::string BENCHMARK_TASK_NAME = "Benchmark";
 
@@ -108,13 +108,13 @@ namespace mlp {
             endTask(BENCHMARK_TASK_NAME);
         }
 
-        void Profiler::reset() {
+        void Profiler::clear() {
             m_tasks.clear();
             m_taskOrder.clear();
         }
 
         void Profiler::print() const {
-            if (!m_enabled) return;
+            if (m_tasks.empty() || !m_enabled) return;
 
             int longest_name_length = 0;
 
@@ -122,7 +122,7 @@ namespace mlp {
                 longest_name_length = std::max(longest_name_length, static_cast<int>(name.size()));
             }
 
-            std::cout << '\n' << m_name << ":\n";
+            std::cout << m_name << ":\n";
 
             std::vector<std::string> headings = { "Task name", "Total", "Min", "Max", "Average" };
             std::vector<int> heading_lengths;
@@ -168,8 +168,6 @@ namespace mlp {
             if (benchmark_task) {
                 print_task(BENCHMARK_TASK_NAME, *benchmark_task, longest_name_length);
             }
-
-            std::cout << '\n';
         }
     }
 }

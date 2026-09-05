@@ -59,7 +59,10 @@ elseif(MLP_COMPUTE STREQUAL "OPENCL")
 
     add_executable(mlp ${SOURCES})
 
-    target_compile_definitions(mlp PRIVATE MLP_OPENCL)
+    target_compile_definitions(mlp PRIVATE
+        MLP_OPENCL
+        CL_TARGET_OPENCL_VERSION=200
+    )
 
     target_link_libraries(mlp PRIVATE OpenCL::OpenCL)
 

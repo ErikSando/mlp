@@ -23,8 +23,6 @@ namespace mlp {
 
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
 
-            void init() {}
-
             void transfer(float* dest, const Matrix_t& src) const;
             void transfer(Matrix_t& dest, const float* src) const;
             void transfer(Matrix_t& dest, const Matrix_t& src) const;

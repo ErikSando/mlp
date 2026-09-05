@@ -29,6 +29,8 @@ namespace mlp {
         void Context::transfer(Matrix_t& dest, const Matrix_t& src) const {
             if (m_profiler) m_profiler->startTask("Copy");
 
+            assert(src.size() == dest.size());
+
             cudaError_t err = cudaMemcpy(dest.data(), src.data(), dest.size(), cudaMemcpyDeviceToDevice);
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
@@ -57,6 +59,8 @@ namespace mlp {
 
         void Context::transfer(Buffer_t& dest, const Buffer_t& src) const {
             if (m_profiler) m_profiler->startTask("Copy");
+
+            assert(src.size() == dest.size());
 
             cudaError_t err = cudaMemcpy(dest.data(), src.data(), dest.size(), cudaMemcpyDeviceToDevice);
             if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");

@@ -9,10 +9,10 @@
 #include <cassert>
 #include <iostream>
 
+#include "enums/Enums.hpp"
 #include "opencl/memory/Buffer.hpp"
 #include "opencl/memory/Matrix.hpp"
 #include "opencl/profiling/Profiler.hpp"
-#include "enums/Enums.hpp"
 
 #define CL_ERROR(err, message)\
     do {\
@@ -27,22 +27,13 @@
 
 namespace mlp {
     namespace opencl {
-        constexpr unsigned int TILE_SIZE = 32;
-        constexpr unsigned int BLOCK_SIZE = 256;
-
-        inline unsigned int block_count(unsigned int thread_count, unsigned int block_size) {
-            return (thread_count + block_size - 1) / block_size;
-        }
-
         class Context {
             public:
 
             using Buffer_t = Buffer;
             using Matrix_t = Matrix;
 
-            Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
-
-            void init();
+            Context(Profiler* profiler = nullptr);
 
             /*
                 TODO:
@@ -62,7 +53,7 @@ namespace mlp {
             void transfer(Buffer_t& dest, const Buffer_t& src) const;
 
             // Randomise each value in the Matrix_t to a value between min and max
-            void randomise(Matrix_t& Matrix_t, float min, float max) const;
+            // void randomise(Matrix_t& Matrix_t, float min, float max) const;
 
             void softmax(const Matrix_t& inputs, Matrix_t& outputs) const;
 
@@ -86,34 +77,26 @@ namespace mlp {
                 const Matrix_t& left_activations, const Matrix_t& right_activations,
                 const Matrix_t& weights,
                 const Activation activation,
-                Matrix_t& gradients, Matrix_t& dC_da_next
+                Matrix_t& weight_gradients, Matrix_t& bias_gradients, Matrix_t& dC_da_next
             ) const; // hidden layers
 
             void computeOutputGradients(
                 const Matrix_t& last_activations, const Matrix_t& output_activations,
                 const Matrix_t& weights,
                 const std::vector<int>& labels,
-                const Activation activation, const Loss loss,
-                Matrix_t& gradients, Matrix_t& dC_da_hidden
+                const OALP al_pair,
+                Matrix_t& weight_gradients, Matrix_t& bias_gradients, Matrix_t& dC_da_hidden
             ) const; // output layer
 
-            void optimiseLayer(Matrix_t& weights, const Matrix_t& gradients, const float learning_rate) const;
+            void optimiseLayer(Matrix_t& weights, Matrix& biases, const Matrix_t& weight_gradients, const Matrix_t& bias_gradients, const float learning_rate) const;
 
-            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, const size_t n_samples, Buffer_t& correct, Buffer_t& classifications) const;
+            void checkOutputs(const Matrix_t& outputs, const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications, const size_t samples) const;
 
             void computeLoss(const Matrix_t& outputs, const Matrix_t& targets, Matrix_t& result, const Loss loss) const;
 
             // probably need something equivalent to cuda device synchronise
 
             private:
-
-            cl_platform_info m_platformInfo;
-            cl_platform_id m_platformIDs[100];
-            cl_device_id m_deviceID;
-            cl_ulong m_globalMemSize;
-            cl_ulong m_maxAllocSize;
-            cl_context m_clContext;
-            cl_command_queue m_commandQueue;
 
             Profiler* m_profiler = nullptr;
         };

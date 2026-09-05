@@ -1,8 +1,9 @@
 #include "opencl/Context.hpp"
+#include "opencl/CLstuff.hpp"
 
 namespace mlp {
     namespace opencl {
-        void Context::init() {
+        Context::Context(Profiler* profiler) : m_profiler(profiler) {
             cl_int err;
             cl_uint num_platforms;
 
@@ -14,33 +15,33 @@ namespace mlp {
 
             std::cout << num_platforms << " platform/s\n";
 
-            err = clGetPlatformIDs(num_platforms, m_platformIDs, nullptr);
+            err = clGetPlatformIDs(num_platforms, platform_ids, nullptr);
 
             if (err != CL_SUCCESS) {
                 CL_ERROR(err, "Failed to get platform IDs");
             }
 
             char version[128];
-            clGetPlatformInfo(m_platformIDs[0], CL_PLATFORM_VERSION, sizeof(version), version, nullptr);
+            clGetPlatformInfo(platform_ids[0], CL_PLATFORM_VERSION, sizeof(version), version, nullptr);
             std::cout << "OpenCL version: " << version << "\n";
 
-            err = clGetDeviceIDs(m_platformIDs[0], CL_DEVICE_TYPE_GPU, 1, &m_deviceID, nullptr);
+            err = clGetDeviceIDs(platform_ids[0], CL_DEVICE_TYPE_GPU, 1, &device_id, nullptr);
 
             if (err != CL_SUCCESS) {
                 CL_ERROR(err, "Failed to get device IDs");
             }
 
-            clGetDeviceInfo(m_deviceID, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(m_globalMemSize), &m_globalMemSize, nullptr);
-            clGetDeviceInfo(m_deviceID, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(m_maxAllocSize), &m_maxAllocSize, nullptr);
+            clGetDeviceInfo(device_id, CL_DEVICE_GLOBAL_MEM_SIZE, sizeof(global_mem_size), &global_mem_size, nullptr);
+            clGetDeviceInfo(device_id, CL_DEVICE_MAX_MEM_ALLOC_SIZE, sizeof(max_alloc_size), &max_alloc_size, nullptr);
 
-            std::cout << "Global memory size: " << m_globalMemSize << "\n";
-            std::cout << "Max mem alloc size: " << m_maxAllocSize << "\n";
+            std::cout << "Global memory size: " << global_mem_size << "\n";
+            std::cout << "Max mem alloc size: " << max_alloc_size << "\n";
 
-            m_clContext = clCreateContext(nullptr, 1, &m_deviceID, nullptr, nullptr, &err);
+            clcontext = clCreateContext(nullptr, 1, &device_id, nullptr, nullptr, &err);
 
-            if (!m_clContext) {
+            if (!clcontext) {
                 CL_ERROR(err, "Failed to create context");
-                clReleaseContext(m_clContext);
+                clReleaseContext(clcontext);
             }
 
             const cl_queue_properties queue_props[] = {
@@ -51,9 +52,9 @@ namespace mlp {
                 0
             };
 
-            m_commandQueue = clCreateCommandQueueWithProperties(m_clContext, m_deviceID, queue_props, &err);
+            command_queue = clCreateCommandQueueWithProperties(clcontext, device_id, queue_props, &err);
 
-            if (!m_commandQueue) {
+            if (!command_queue) {
                 CL_ERROR(err, "Failed to create command queue");
             }
         }

@@ -59,11 +59,13 @@ namespace mlp {
 
                 std::uniform_real_distribution<float> distrib(weight_min, weight_max);
 
-                float* weights = new float[m_layers.back()->weights.size()];
-                for (size_t i = 0; i < m_layers.back()->weights.size(); i++) {
+                std::vector<float> weights(m_layers.back()->weights.size());
+
+                for (size_t i = 0; i < weights.size(); i++) {
                     weights[i] = distrib(gen);
                 }
-                m_context.transfer(m_layers.back()->weights, weights);
+
+                m_context.transfer(m_layers.back()->weights, weights.data());
             }
 
             previous_count = node_count;

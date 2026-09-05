@@ -42,8 +42,6 @@ namespace mlp {
 
             Context(Profiler* profiler = nullptr) : m_profiler(profiler) {}
 
-            void init() {}
-
             // Transfer data from device memory to host memory
             void transfer(float* dest, const Matrix_t& src) const;
 

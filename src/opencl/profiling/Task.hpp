@@ -18,9 +18,6 @@ namespace mlp {
 
             private:
 
-            // cudaEvent_t m_start;
-            // cudaEvent_t m_end;
-
             float m_duration = 0.0f;
             float m_min = 0.0f;
             float m_max = 0.0f;

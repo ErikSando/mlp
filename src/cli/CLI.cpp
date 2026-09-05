@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <iostream>
 #include <random>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -36,7 +37,6 @@ namespace mlp {
         mlp::Profiler profiler(PROFILER_NAME);
 
         mlp::Context context(&profiler);
-        context.init();
 
         activation_functions["none"] = Activation::NONE;
         activation_functions["leakyrelu"] = Activation::LEAKY_RELU;

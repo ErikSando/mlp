@@ -12,7 +12,7 @@ namespace mlp {
             public:
 
             Matrix(size_t rows, size_t columns);
-            ~Matrix() {}
+            ~Matrix();
 
             void zero();
 

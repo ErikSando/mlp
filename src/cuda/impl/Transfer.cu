@@ -2,70 +2,74 @@
 
 #include <cuda_runtime.h>
 
-#include "cuda/Context.hpp"
+#include "context/Context.hpp"
+#include "cuda/ContextImpl.hpp"
 
 namespace mlp {
-    namespace cuda {
-        void Context::transfer(float* dest, const Matrix& src) const {
-            // synchronise();
+    void Context::synchronise() const {
+        cudaError_t err = cudaDeviceSynchronize();
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA device synchronise error");
+    }
 
-            if (m_profiler) m_profiler->startTask("Download");
+    void Context::transfer(float* dest, const Matrix& src) const {
+        // synchronise();
 
-            cudaError_t err = cudaMemcpy(dest, src.data(), src.size() * sizeof(float), cudaMemcpyDeviceToHost);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
+        if (m_profiler) m_profiler->startTask("Download");
 
-            if (m_profiler) m_profiler->endTask("Download");
-        }
+        cudaError_t err = cudaMemcpy(dest, src.data(), src.size() * sizeof(float), cudaMemcpyDeviceToHost);
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
-        void Context::transfer(Matrix& dest, const float* src) const {
-            if (m_profiler) m_profiler->startTask("Upload");
+        if (m_profiler) m_profiler->endTask("Download");
+    }
 
-            cudaError_t err = cudaMemcpy(dest.data(), src, dest.size() * sizeof(float), cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
+    void Context::transfer(Matrix& dest, const float* src) const {
+        if (m_profiler) m_profiler->startTask("Upload");
 
-            if (m_profiler) m_profiler->endTask("Upload");
-        }
+        cudaError_t err = cudaMemcpy(dest.data(), src, dest.size() * sizeof(float), cudaMemcpyHostToDevice);
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
-        void Context::transfer(Matrix& dest, const Matrix& src) const {
-            if (m_profiler) m_profiler->startTask("Copy");
+        if (m_profiler) m_profiler->endTask("Upload");
+    }
 
-            assert(src.size() == dest.size());
+    void Context::transfer(Matrix& dest, const Matrix& src) const {
+        if (m_profiler) m_profiler->startTask("Copy");
 
-            cudaError_t err = cudaMemcpy(dest.data(), src.data(), dest.size(), cudaMemcpyDeviceToDevice);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
+        assert(src.size() == dest.size());
 
-            if (m_profiler) m_profiler->endTask("Copy");
-        }
+        cudaError_t err = cudaMemcpy(dest.data(), src.data(), dest.size(), cudaMemcpyDeviceToDevice);
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
-        void Context::transfer(void* dest, const Buffer& src) const {
-            // synchronise();
+        if (m_profiler) m_profiler->endTask("Copy");
+    }
 
-            if (m_profiler) m_profiler->startTask("Download");
+    void Context::transfer(void* dest, const Buffer& src) const {
+        // synchronise();
 
-            cudaError_t err = cudaMemcpy(dest, src.data(), src.size(), cudaMemcpyDeviceToHost);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
+        if (m_profiler) m_profiler->startTask("Download");
 
-            if (m_profiler) m_profiler->endTask("Download");
-        }
+        cudaError_t err = cudaMemcpy(dest, src.data(), src.size(), cudaMemcpyDeviceToHost);
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
-        void Context::transfer(Buffer& dest, const void* src) const {
-            if (m_profiler) m_profiler->startTask("Upload");
+        if (m_profiler) m_profiler->endTask("Download");
+    }
 
-            cudaError_t err = cudaMemcpy(dest.data(), src, dest.size(), cudaMemcpyHostToDevice);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
+    void Context::transfer(Buffer& dest, const void* src) const {
+        if (m_profiler) m_profiler->startTask("Upload");
 
-            if (m_profiler) m_profiler->endTask("Upload");
-        }
+        cudaError_t err = cudaMemcpy(dest.data(), src, dest.size(), cudaMemcpyHostToDevice);
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
 
-        void Context::transfer(Buffer& dest, const Buffer& src) const {
-            if (m_profiler) m_profiler->startTask("Copy");
+        if (m_profiler) m_profiler->endTask("Upload");
+    }
 
-            assert(src.size() == dest.size());
+    void Context::transfer(Buffer& dest, const Buffer& src) const {
+        if (m_profiler) m_profiler->startTask("Copy");
 
-            cudaError_t err = cudaMemcpy(dest.data(), src.data(), dest.size(), cudaMemcpyDeviceToDevice);
-            if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
+        assert(src.size() == dest.size());
 
-            if (m_profiler) m_profiler->endTask("Copy");
-        }
+        cudaError_t err = cudaMemcpy(dest.data(), src.data(), dest.size(), cudaMemcpyDeviceToDevice);
+        if (err != cudaSuccess) CUDA_ERROR(err, "CUDA memcpy error");
+
+        if (m_profiler) m_profiler->endTask("Copy");
     }
 }

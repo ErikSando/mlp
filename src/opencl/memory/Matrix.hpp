@@ -11,10 +11,16 @@ namespace mlp {
         class Matrix {
             public:
 
-            Matrix(size_t rows, size_t columns);
+            Matrix(const cl_context& context, size_t rows, size_t columns);
             ~Matrix();
 
-            void zero();
+            Matrix(const Matrix&) = delete;
+            Matrix& operator=(const Matrix&) = delete;
+
+            Matrix(Matrix&&) noexcept;
+            Matrix& operator=(Matrix&&) noexcept;
+
+            void zero(const cl_command_queue& command_queue);
 
             cl_mem& data() { return m_data; }
             const cl_mem& data() const { return m_data; }

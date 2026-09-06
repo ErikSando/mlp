@@ -1,22 +1,38 @@
 #pragma once
 
+#include <vector>
+
+#include "CL/cl.h"
+
 namespace mlp {
     namespace opencl {
+        struct EventPair {
+            cl_event start;
+            cl_event end;
+        };
+
         class Task {
             public:
 
-            Task();
+            Task(const cl_command_queue& command_queue);
             ~Task();
 
             void start();
             void end();
 
-            float getDuration() const { return m_duration; };
-            float getMin() const { return m_min; }
-            float getMax() const { return m_max; }
-            float getAverage() const { return m_average; }
+            float getDuration();
+            float getMin();
+            float getMax();
+            float getAverage();
 
             private:
+
+            void resolve();
+
+            std::vector<EventPair> m_eventPairs;
+
+            cl_command_queue m_commandQueue;
+            cl_event m_lastStart;
 
             float m_duration = 0.0f;
             float m_min = 0.0f;

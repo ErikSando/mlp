@@ -8,7 +8,7 @@
 
 #include "cli/CLI.hpp"
 #include "cli/Commands.hpp"
-#include "config/Config.hpp"
+#include "cli/Config.hpp"
 #include "data/Dataset.hpp"
 #include "data/ParseSample.hpp"
 #include "mlp/MLP.hpp"
@@ -63,13 +63,15 @@ namespace mlp {
         mlp::MLP* model = &models.at(BASE_NAME);
         std::string model_name = BASE_NAME;
 
-        bool print_profile = false; // maybe i can just rely on the enabled member bool in the profiler class
-
-        std::string command;
+        bool print_profiling = false; // maybe i can just rely on the enabled member bool in the profiler class
 
         profiler.clear();
 
-        mlp::Matrix test(5, 5);
+        std::string command;
+
+        // vvv TESTING vvv
+
+        mlp::Matrix test = context.createMatrix(5, 5);
 
         std::vector<float> values(5 * 5);
         values[0] = 1.0f;
@@ -95,7 +97,7 @@ namespace mlp {
 
         std::cout << '\n';
 
-        test.zero();
+        context.zeroMatrix(test);
 
         context.transfer(hello.data(), test);
         context.synchronise();
@@ -107,6 +109,8 @@ namespace mlp {
         }
 
         std::cout << '\n';
+
+        // ^^^ TESTING ^^^
 
         while (true) {
             std::cout << model_name << " > ";
@@ -356,7 +360,7 @@ If no value is given, the default batch size is 32, and the default learning rat
 
                 std::cout << "Training completed\n\n";
 
-                if (print_profile) {
+                if (print_profiling) {
                     profiler.print();
                     std::cout << '\n';
                 }
@@ -385,7 +389,7 @@ If no value is given, the default batch size is 32, and the default learning rat
 
                 profiler.endBenchmark();
 
-                if (print_profile) {
+                if (print_profiling) {
                     std::cout << '\n';
                     profiler.print();
                 }
@@ -403,13 +407,13 @@ If no value is given, the default batch size is 32, and the default learning rat
                 std::string& value = args.at(1);
 
                 if (value == "true" || value == "t" || value == "yes" || value == "y") {
-                    print_profile = true;
+                    print_profiling = true;
                     std::cout << "Profiler will automatically print\n";
                     continue;
                 }
 
                 if (value == "false" || value == "f" || value == "no" || value == "n") {
-                    print_profile = false;
+                    print_profiling = false;
                     std::cout << "Profiler will not automatically print\n";
                     continue;
                 }

@@ -12,9 +12,13 @@ namespace mlp {
         std::vector<Matrix> bias_gradients; // ordered backwards
         std::vector<Matrix> dC_da;
 
-        weight_gradients.emplace_back(output_layer->weights.rows(), output_layer->weights.columns()).zero();
-        bias_gradients.emplace_back(1, output_layer->biases.size()).zero();
-        dC_da.emplace_back(m_batchSize, last_hidden_layer->activations.columns()).zero();
+        weight_gradients.push_back(m_context.createMatrix(output_layer->weights.rows(), output_layer->weights.columns()));
+        bias_gradients.push_back(m_context.createMatrix(1, output_layer->biases.size()));
+        dC_da.push_back(m_context.createMatrix(m_batchSize, last_hidden_layer->activations.columns()));
+
+        m_context.zeroMatrix(weight_gradients.back());
+        m_context.zeroMatrix(bias_gradients.back());
+        m_context.zeroMatrix(dC_da.back());
 
         m_context.computeOutputGradients(
             last_hidden_layer->activations, output_layer->activations,
@@ -28,9 +32,13 @@ namespace mlp {
             Layer_up& layer = m_layers[l];
             Layer_up& preceding_layer = m_layers[l - 1];
 
-            weight_gradients.emplace_back(layer->weights.rows(), layer->weights.columns()).zero();
-            bias_gradients.emplace_back(1, layer->biases.size()).zero();
-            dC_da.emplace_back(m_batchSize, preceding_layer->activations.columns()).zero();
+            weight_gradients.push_back(m_context.createMatrix(layer->weights.rows(), layer->weights.columns()));
+            bias_gradients.push_back(m_context.createMatrix(1, layer->biases.size()));
+            dC_da.push_back(m_context.createMatrix(m_batchSize, preceding_layer->activations.columns()));
+
+            m_context.zeroMatrix(weight_gradients.back());
+            m_context.zeroMatrix(bias_gradients.back());
+            m_context.zeroMatrix(dC_da.back());
 
             m_context.computeGradients(
                 dC_da[dC_da.size() - 2],

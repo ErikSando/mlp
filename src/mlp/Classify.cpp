@@ -43,21 +43,18 @@ namespace mlp {
 
         assert(sample.label < n_outputs);
 
-        float* host_targets = new float[n_outputs] {};
+        std::vector<float> host_targets(n_outputs);
         host_targets[sample.label] = 1.0f;
 
-        float* host_results = new float[m_batchSize];
+        std::vector<float> host_results(m_batchSize);
 
-        Matrix targets(m_batchSize, n_classes);
-        Matrix results(m_batchSize, 1);
+        Matrix targets = m_context.createMatrix(m_batchSize, n_classes);
+        Matrix results = m_context.createMatrix(m_batchSize, 1);
 
-        m_context.transfer(targets, host_targets);
+        m_context.transfer(targets, host_targets.data());
         m_context.computeLoss(m_layers.back()->activations, targets, results, m_lossFunction);
-        m_context.transfer(host_results, results);
+        m_context.transfer(host_results.data(), results);
 
         info.error = host_results[0];
-
-        delete[] host_targets;
-        delete[] host_results;
     }
 }

@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include "config/Config.hpp"
 #include "data/Batch.hpp"
 #include "data/Sample.hpp"
 #include "enums/Enums.hpp"

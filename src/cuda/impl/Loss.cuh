@@ -1,8 +1,6 @@
 #pragma once
 
 namespace mlp {
-    namespace cuda {
-        struct CCE;
-        struct MSE;
-    }
+    struct CCE;
+    struct MSE;
 }

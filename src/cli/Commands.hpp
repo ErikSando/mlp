@@ -2,7 +2,6 @@
 
 #include <unordered_map>
 
-#include "config/Config.hpp"
 #include "data/Dataset.hpp"
 #include "data/ParseSample.hpp"
 #include "data/Sample.hpp"

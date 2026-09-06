@@ -9,10 +9,10 @@ namespace mlp {
         class Buffer {
             public:
 
-            Buffer(size_t size);
+            Buffer(const cl_context& context, const size_t size);
             ~Buffer();
 
-            void zero();
+            void zero(const cl_command_queue& command_queue);
 
             cl_mem& data() { return m_data; }
             const cl_mem& data() const { return m_data; }

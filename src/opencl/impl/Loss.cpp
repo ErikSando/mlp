@@ -1,9 +1,8 @@
-#include "opencl/Context.hpp"
+#include "context/Context.hpp"
+#include "opencl/ContextImpl.hpp"
 
 namespace mlp {
-    namespace opencl {
-        void Context::computeLoss(const Matrix& outputs, const Matrix& targets, Matrix& result, const Loss loss) const {
-            
-        }
+    void Context::computeLoss(const Matrix& outputs, const Matrix& targets, Matrix& result, const Loss loss) const {
+        
     }
 }

@@ -13,11 +13,11 @@ namespace mlp {
             size_t n_batches = dataset.size() / batch_size;
             size_t remainder = dataset.size() - n_batches * batch_size;
 
-            Buffer correct(sizeof(int));
-            Buffer classifications(batch_size * sizeof(int));
+            Buffer correct = context.createBuffer(sizeof(int));
+            Buffer classifications = context.createBuffer(batch_size * sizeof(int));
 
-            correct.zero();
-            classifications.zero();
+            context.zeroBuffer(correct);
+            context.zeroBuffer(classifications);
 
             Batch batch(batch_size, input_count);
 

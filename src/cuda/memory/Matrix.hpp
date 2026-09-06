@@ -14,8 +14,8 @@ namespace mlp {
             Matrix(const Matrix&) = delete;
             Matrix& operator=(const Matrix&) = delete;
 
-            Matrix(Matrix&& other) noexcept;
-            Matrix& operator=(Matrix&& other) noexcept;
+            Matrix(Matrix&&) noexcept;
+            Matrix& operator=(Matrix&&) noexcept;
 
             void zero();
 

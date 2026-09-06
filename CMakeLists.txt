@@ -8,6 +8,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(MLP_COMPUTE "HOST" CACHE STRING "MLP compute context: CUDA, OPENCL, or leave blank for host computing")
 set_property(CACHE MLP_COMPUTE PROPERTY STRINGS CUDA OPENCL HOST)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 file(GLOB_RECURSE CPP_SOURCES CONFIGURE_DEPENDS
     src/*.cpp
 )
@@ -62,6 +64,7 @@ elseif(MLP_COMPUTE STREQUAL "OPENCL")
     target_compile_definitions(mlp PRIVATE
         MLP_OPENCL
         CL_TARGET_OPENCL_VERSION=200
+        MLP_CL_KERNEL_DIR="${CMAKE_SOURCE_DIR}/src/opencl/impl/"
     )
 
     target_link_libraries(mlp PRIVATE OpenCL::OpenCL)
@@ -81,12 +84,15 @@ elseif(MLP_COMPUTE STREQUAL "HOST")
 else()
 
     message(FATAL_ERROR
-        "Unrecognised compute context: '${MLP_COMPUTE}'"
+        "Unrecognised compute context: '${MLP_COMPUTE}'\n"
         "Choose from CUDA, OPENCL, or HOST"
     )
 
 endif()
 
-target_compile_definitions(mlp PRIVATE RANDOM_BS)
+target_compile_definitions(mlp PRIVATE
+    RANDOM_BS
+    MLP_SRC_DIR="${CMAKE_SOURCE_DIR}/src/"
+)
 
 target_include_directories(mlp PRIVATE src)

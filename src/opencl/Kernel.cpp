@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "opencl/CLstuff.hpp"
+#include "opencl/Error.hpp"
 #include "opencl/Kernel.hpp"
 
 namespace mlp {
@@ -21,7 +21,7 @@ namespace mlp {
             return contents.str();
         }
 
-        Kernel::Kernel(const std::string& source_path, const std::string& name) {
+        Kernel::Kernel(const KernelResources& kernelResources, const std::string& source_path, const std::string& name) {
             std::string kernel_src = read_file(source_path);
 
             if (!kernel_src.size()) {
@@ -32,28 +32,30 @@ namespace mlp {
 
             const char* src = kernel_src.c_str();
 
-            m_clProgram = clCreateProgramWithSource(clcontext, 1, (const char**) &src, nullptr, &err);
+            m_clProgram = clCreateProgramWithSource(kernelResources.clContext, 1, (const char**) &src, nullptr, &err);
 
             if (!m_clProgram) {
-                CL_ERROR("Failed to create compute program", err);
+                CL_ERROR(err, "Failed to create compute program");
             }
 
-            err = clBuildProgram(m_clProgram, 0, nullptr, nullptr, nullptr, nullptr);
+            std::string build_options = "-I " + std::string(MLP_SRC_DIR);
+
+            err = clBuildProgram(m_clProgram, 1, &kernelResources.deviceID, build_options.c_str(), nullptr, nullptr);
 
             if (err != CL_SUCCESS) {
                 size_t length;
-                clGetProgramBuildInfo(m_clProgram, device_id, CL_PROGRAM_BUILD_LOG, 0, nullptr, &length);
+                clGetProgramBuildInfo(m_clProgram, kernelResources.deviceID, CL_PROGRAM_BUILD_LOG, 0, nullptr, &length);
                 char buffer[length];
-                clGetProgramBuildInfo(m_clProgram, device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, nullptr);
-                CL_ERROR("Failed to build program executible", err);
+                clGetProgramBuildInfo(m_clProgram, kernelResources.deviceID, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, nullptr);
                 std::cout << buffer << "\n";
+                CL_ERROR(err, "Failed to build program executible");
                 return;
             }
 
             m_clKernel = clCreateKernel(m_clProgram, name.c_str(), &err);
 
             if (err != CL_SUCCESS) {
-                CL_ERROR("Failed to create compute kernel", err);
+                CL_ERROR(err, "Failed to create compute kernel");
             }
 
             if (!m_clKernel) {

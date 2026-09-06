@@ -32,7 +32,8 @@ namespace mlp {
 
         size_t node_count = layer_sizes[0];
 
-        m_layers.emplace_back(std::make_unique<Layer>(m_batchSize, node_count, 0));
+        m_layers.emplace_back(std::make_unique<Layer>(m_context, m_batchSize, node_count, 0, Activation::NONE));
+        // m_layers.emplace_back(std::make_unique<Layer>(m_batchSize, node_count, 0));
 
         size_t previous_count = node_count;
 
@@ -46,8 +47,9 @@ namespace mlp {
             bool is_output_layer = i == layer_sizes.size() - 1;
             Activation activation = is_output_layer ? output_activation : hidden_activation;
 
-            m_layers.push_back(std::make_unique<Layer>(m_batchSize, node_count, previous_count, activation));
-            m_layers.back()->biases.zero();
+            m_layers.push_back(std::make_unique<Layer>(m_context, m_batchSize, node_count, previous_count, activation));
+            // m_layers.push_back(std::make_unique<Layer>(m_batchSize, node_count, previous_count, activation));
+            m_context.zeroMatrix(m_layers.back()->biases);
 
             if (init_weights) {
                 // m_context.randomise(m_layers.back()->weights, weight_min, weight_max);

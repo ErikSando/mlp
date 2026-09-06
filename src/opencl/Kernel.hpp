@@ -4,12 +4,14 @@
 
 #include "CL/cl.h"
 
+#include "opencl/KernelResources.hpp"
+
 namespace mlp {
     namespace opencl {
         class Kernel {
             public:
 
-            Kernel(const std::string& source_path, const std::string& name);
+            Kernel(const KernelResources& kernelResources, const std::string& source_path, const std::string& name);
             ~Kernel();
 
             template<typename T>

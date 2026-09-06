@@ -9,8 +9,14 @@ namespace mlp {
 
         m_context.transfer(m_layers[0]->activations, batch.data.data());
 
-        for (size_t layer = 1; layer < m_layers.size(); layer++) {
-            m_layers[layer]->propagate(m_context, m_layers[layer - 1]->activations);
+        for (size_t l = 1; l < m_layers.size(); l++) {
+            // m_layers[l]->propagate(m_context, m_layers[l - 1]->activations);
+
+            m_context.propagate(
+                m_layers[l - 1]->activations, m_layers[l]->logits, m_layers[l]->activations,
+                m_layers[l]->weights, m_layers[l]->biases,
+                m_layers[l]->activation
+            );
         }
     }
 

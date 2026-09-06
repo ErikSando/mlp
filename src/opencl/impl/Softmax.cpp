@@ -1,9 +1,8 @@
-#include "opencl/Context.hpp"
+#include "context/Context.hpp"
+#include "opencl/ContextImpl.hpp"
 
 namespace mlp {
-    namespace opencl {
-        void Context::softmax(const Matrix& inputs, Matrix& outputs) const {
-            
-        }
+    void Context::softmax(const Matrix& inputs, Matrix& outputs) const {
+        
     }
 }

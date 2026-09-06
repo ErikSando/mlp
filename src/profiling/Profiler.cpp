@@ -5,13 +5,6 @@
 #include "profiling/Profiler.hpp"
 
 namespace mlp {
-    namespace profiler_settings {
-        constexpr int MAX_FLOAT_LENGTH = 8;
-        constexpr int MIN_GAP = 2; // minimum number of spaces between the task name and duration info (e.g. 2 is name  | 0.5 ms)
-
-        inline const std::string BENCHMARK_TASK_NAME = "Benchmark";
-    }
-
     inline void get_string(float value, std::string& str, int max_len) {
         for (int p = max_len; p >= 1; p--) {
             std::string f = std::format("{:.{}g}", value, p);
@@ -25,7 +18,7 @@ namespace mlp {
         std::cerr << "Could not fit " << value << " within " << max_len << " characters.\n";
     }
 
-    void print_task(const std::string& name, const Task& task, const int longest_name_length) {
+    void print_task(const std::string& name, Task& task, const int longest_name_length) {
         std::cout << name;
 
         for (int i = 0; i < profiler_settings::MIN_GAP + longest_name_length - static_cast<int>(name.size()); i++) {
@@ -71,7 +64,7 @@ namespace mlp {
         std::cout << "|\n";
     }
 
-    void Profiler::startTask(const std::string& name) { // i think const char* is okay because im using literals, but maybe std::string is better in general
+    void Profiler::startTask(const std::string& name) {
         if (!m_enabled) return;
 
         if (name == profiler_settings::BENCHMARK_TASK_NAME) {
@@ -83,9 +76,10 @@ namespace mlp {
 
         if (!m_tasks.contains(name)) {
             m_taskOrder.push_back(name);
+            newTask(name);
         }
 
-        m_tasks[name].start(); // if there are no tasks with that name, one will be created
+        m_tasks.at(name).start();
     }
 
     void Profiler::endTask(const std::string& name) {
@@ -106,7 +100,7 @@ namespace mlp {
             m_taskOrder.push_back(profiler_settings::BENCHMARK_TASK_NAME);
         }
 
-        m_tasks[profiler_settings::BENCHMARK_TASK_NAME].start();
+        m_tasks.at(profiler_settings::BENCHMARK_TASK_NAME).start();
     }
 
     void Profiler::endBenchmark() {
@@ -118,7 +112,7 @@ namespace mlp {
         m_taskOrder.clear();
     }
 
-    void Profiler::print() const {
+    void Profiler::print() {
         if (m_tasks.empty() || !m_enabled) {
             std::cout << m_name << ": no tasks to print\n";
             return;
@@ -156,7 +150,7 @@ namespace mlp {
 
         std::cout << "|\n";
 
-        const Task* benchmark_task = nullptr;
+        Task* benchmark_task = nullptr;
 
         for (const std::string& name : m_taskOrder) {
             auto it = m_tasks.find(name);

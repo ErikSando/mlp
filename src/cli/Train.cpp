@@ -1,9 +1,8 @@
-#include "cli/CLI.hpp"
 #include "cli/Commands.hpp"
 
 namespace mlp {
     namespace commands {
-        void train(MLP_t* model, Dataset& dataset, size_t n_epochs) {
+        void train(MLP* model, Dataset& dataset, size_t n_epochs) {
             size_t input_count = model->getInputCount();
             size_t batch_size = model->getBatchSize();
             size_t n_batches = dataset.size() * n_epochs / batch_size;

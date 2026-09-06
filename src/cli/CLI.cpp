@@ -8,6 +8,7 @@
 
 #include "cli/CLI.hpp"
 #include "cli/Commands.hpp"
+#include "config/Config.hpp"
 #include "data/Dataset.hpp"
 #include "data/ParseSample.hpp"
 #include "mlp/MLP.hpp"
@@ -48,7 +49,7 @@ namespace mlp {
         loss_functions["cce"] = Loss::CCE;
         loss_functions["mse"] = Loss::MSE;
 
-        std::unordered_map<std::string, mlp::MLP_t> models;
+        std::unordered_map<std::string, mlp::MLP> models;
 
         // to do: check for a base model save in res/ and load it into the base model if it exists
 
@@ -59,7 +60,7 @@ namespace mlp {
         auto [it, _] = models.emplace(BASE_NAME, context);
         it->second.init(layer_sizes);
 
-        mlp::MLP_t* model = &models.at(BASE_NAME);
+        mlp::MLP* model = &models.at(BASE_NAME);
         std::string model_name = BASE_NAME;
 
         bool print_profile = false; // maybe i can just rely on the enabled member bool in the profiler class
@@ -67,6 +68,45 @@ namespace mlp {
         std::string command;
 
         profiler.clear();
+
+        mlp::Matrix test(5, 5);
+
+        std::vector<float> values(5 * 5);
+        values[0] = 1.0f;
+
+        for (size_t i = 1; i < values.size(); i++) {
+            values[i] = values[i - 1] + 1.0f;
+        }
+
+        context.transfer(test, values.data());
+
+        values.clear();
+
+        std::vector<float> hello(5 * 5);
+
+        context.transfer(hello.data(), test);
+        context.synchronise();
+
+        std::cout << hello[0];
+
+        for (size_t i = 1; i < hello.size(); i++) {
+            std::cout << ", " << hello[i];
+        }
+
+        std::cout << '\n';
+
+        test.zero();
+
+        context.transfer(hello.data(), test);
+        context.synchronise();
+
+        std::cout << hello[0];
+
+        for (size_t i = 1; i < hello.size(); i++) {
+            std::cout << ", " << hello[i];
+        }
+
+        std::cout << '\n';
 
         while (true) {
             std::cout << model_name << " > ";

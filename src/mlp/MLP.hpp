@@ -2,7 +2,9 @@
 
 #include <memory>
 
+#include "config/Config.hpp"
 #include "data/Batch.hpp"
+#include "data/Sample.hpp"
 #include "enums/Enums.hpp"
 #include "mlp/Layer.hpp"
 
@@ -27,16 +29,11 @@ namespace mlp {
         std::vector<std::vector<float>> biases;
     };
 
-    template<typename TContext>
     class MLP {
         public:
+        using Layer_up = std::unique_ptr<Layer>;
 
-        using Buffer_t = typename TContext::Buffer_t;
-        using Matrix_t = typename TContext::Matrix_t;
-        using Layer_t = Layer<TContext>;
-        using Layer_t_up = std::unique_ptr<Layer_t>;
-
-        MLP(TContext& device_context) : m_context(device_context) {}
+        MLP(Context& device_context) : m_context(device_context) {}
         ~MLP() {}
 
         // Construct the layers of the network, specifying the sizes and activation functions
@@ -52,7 +49,7 @@ namespace mlp {
 
         void init(const ModelData& data);
 
-        const TContext& getContext() const { return m_context; }
+        const Context& getContext() const { return m_context; }
 
         void classify(const Sample& sample, ClassifyInfo& info);
 
@@ -63,7 +60,7 @@ namespace mlp {
         // I removed giving a number of samples, I don't know why I had that in the first place, maybe to look at the first n samples in a batch?
         // I'll add it back later if I need it
         // Just realised, I need to be able to ignore later samples in case the total number of samples in the dataset is not a multiple of the batch size
-        void checkOutputs(const std::vector<int>& labels, Buffer_t& correct, Buffer_t& classifications, const size_t samples = 0) const;
+        void checkOutputs(const std::vector<int>& labels, Buffer& correct, Buffer& classifications, const size_t samples = 0) const;
 
         // Copy the values of the output nodes into the given host memory location
         void copyOutputs(float* host_outputs) const;
@@ -87,9 +84,9 @@ namespace mlp {
 
         private:
 
-        std::vector<Layer_t_up> m_layers;
+        std::vector<Layer_up> m_layers;
 
-        TContext& m_context;
+        Context& m_context;
         size_t m_batchSize;
         float m_learningRate;
         Loss m_lossFunction;
@@ -97,9 +94,9 @@ namespace mlp {
     };
 }
 
-#include "mlp/BackwardPass.hpp"
-#include "mlp/CheckOutputs.hpp"
-#include "mlp/Classify.hpp"
-#include "mlp/ExportData.hpp"
-#include "mlp/ForwardPass.hpp"
-#include "mlp/Init.hpp"
+// #include "mlp/BackwardPass.hpp"
+// #include "mlp/CheckOutputs.hpp"
+// #include "mlp/Classify.hpp"
+// #include "mlp/ExportData.hpp"
+// #include "mlp/ForwardPass.hpp"
+// #include "mlp/Init.hpp"

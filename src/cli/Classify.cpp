@@ -1,9 +1,10 @@
-#include "cli/CLI.hpp"
+#include <cstring>
+
 #include "cli/Commands.hpp"
 
 namespace mlp {
     namespace commands {
-        void classify_sample(MLP_t* model, const ImageData& image_data, const int label) {
+        void classify_sample(MLP* model, const ImageData& image_data, const int label) {
             Sample sample(image_data.data.size());
             sample.label = label;
 

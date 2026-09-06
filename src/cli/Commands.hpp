@@ -2,7 +2,8 @@
 
 #include <unordered_map>
 
-#include "cli/CLI.hpp"
+#include "config/Config.hpp"
+#include "data/Dataset.hpp"
 #include "data/ParseSample.hpp"
 #include "data/Sample.hpp"
 #include "mlp/MLP.hpp"
@@ -27,11 +28,11 @@ namespace mlp {
     extern std::unordered_map<std::string, Loss> loss_functions;
 
     namespace commands {
-        void train(MLP_t* model, Dataset& dataset, size_t n_epochs);
-        void test(MLP_t* model, Dataset& dataset, TestData& data);
+        void train(MLP* model, Dataset& dataset, size_t n_epochs);
+        void test(MLP* model, Dataset& dataset, TestData& data);
 
         void print_sample(const ImageData& sample);
-        void classify_sample(MLP_t* model, const ImageData& image_data, const int label = NO_LABEL);
+        void classify_sample(MLP* model, const ImageData& image_data, const int label = NO_LABEL);
 
         constexpr char seperator = ' ';
 

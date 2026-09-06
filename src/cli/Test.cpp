@@ -1,9 +1,8 @@
-#include "cli/CLI.hpp"
 #include "cli/Commands.hpp"
 
 namespace mlp {
     namespace commands {
-        void test(MLP_t* model, Dataset& dataset, TestData& data) {
+        void test(MLP* model, Dataset& dataset, TestData& data) {
             data.reset();
             dataset.resetLine();
 

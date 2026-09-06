@@ -58,5 +58,13 @@ namespace mlp {
                 CL_ERROR(err, "Failed to create command queue");
             }
         }
+
+        void Context::synchronise() const {
+            cl_int err = clFinish(command_queue);
+
+            if (err != CL_SUCCESS) {
+                CL_ERROR(err, "Failed to wait for the command queue to finish");
+            }
+        }
     }
 }

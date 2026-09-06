@@ -1,6 +1,5 @@
 #include <fstream>
 
-#include "cli/CLI.hpp"
 #include "cli/Commands.hpp"
 
 namespace mlp {

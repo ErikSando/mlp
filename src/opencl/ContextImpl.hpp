@@ -26,6 +26,12 @@ namespace mlp {
         };
     }
 
+    constexpr size_t LOCAL_WORK_SIZE = 16;
+
+    inline size_t global_work_size(size_t local_work_size, size_t dimension) {
+        return (dimension / local_work_size + 1) * local_work_size;
+    }
+
     struct Context::Impl {
         cl_platform_info platformInfo;
         cl_platform_id platformIDs[100];

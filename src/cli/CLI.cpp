@@ -71,44 +71,83 @@ namespace mlp {
 
         // vvv TESTING vvv
 
-        mlp::Matrix test = context.createMatrix(5, 5);
+        mlp::Matrix l_a = context.createMatrix(3, 5);
+        mlp::Matrix r_z = context.createMatrix(3, 8);
+        mlp::Matrix r_a = context.createMatrix(3, 8);
 
-        std::vector<float> values(5 * 5);
-        values[0] = 1.0f;
+        mlp::Matrix w = context.createMatrix(8, 5);
+        mlp::Matrix b = context.createMatrix(8, 1);
 
-        for (size_t i = 1; i < values.size(); i++) {
-            values[i] = values[i - 1] + 1.0f;
-        }
+        float h_la[3 * 5] = {
+            0.5, -0.4, 0.2, 0.4, 0.3,
+            0.2, -0.1, -0.4, -0.3, 0.4,
+            -0.1, 0.3, 0.2, -0.1, -0.5
+        };
 
-        context.transfer(test, values.data());
+        context.transfer(l_a, h_la);
 
-        values.clear();
+        float h_w[5 * 8] = {
+            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
+            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1
+        };
 
-        std::vector<float> hello(5 * 5);
+        float h_b[8] = { 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7 };
 
-        context.transfer(hello.data(), test);
+        context.transfer(w, h_w);
+        context.transfer(b, h_b);
+
         context.synchronise();
 
-        std::cout << hello[0];
-
-        for (size_t i = 1; i < hello.size(); i++) {
-            std::cout << ", " << hello[i];
+        for (size_t r = 0; r < 5; r++) {
+            for (size_t c = 0; c < 8; c++) {
+                h_w[r * 8 + c] = 0.0f;
+            }
         }
 
-        std::cout << '\n';
+        for (size_t i = 0; i < 8; i++) {
+            h_b[i] = 0.0f;
+        }
 
-        context.zeroMatrix(test);
+        context.transfer(h_w, w);
+        context.transfer(h_b, b);
 
-        context.transfer(hello.data(), test);
         context.synchronise();
 
-        std::cout << hello[0];
-
-        for (size_t i = 1; i < hello.size(); i++) {
-            std::cout << ", " << hello[i];
+        for (size_t r = 0; r < 5; r++) {
+            std::cout << h_w[r * 8];
+            for (size_t c = 1; c < 8; c++) {
+                std::cout << ", " << h_w[r * 8 + c];
+            }
+            std::cout << "\n";
         }
+        std::cout << "\n";
 
-        std::cout << '\n';
+        std::cout << h_b[0];
+        for (size_t i = 1; i < 8; i++) {
+            std::cout << ", " << h_b[i];
+        }
+        std::cout << "\n\n";
+
+        context.propagate(l_a, r_z, r_a, w, b, Activation::RELU);
+
+        std::vector<float> h_r(3 * 8);
+
+        context.synchronise();
+
+        context.transfer(h_r.data(), r_a);
+
+        context.synchronise();
+
+        for (size_t r = 0; r < 3; r++) {
+            std::cout << h_r[r * 8];
+            for (size_t c = 1; c < 8; c++) {
+                std::cout << ", " << h_r[r * 8 + c];
+            }
+            std::cout << "\n";
+        }
 
         // ^^^ TESTING ^^^
 

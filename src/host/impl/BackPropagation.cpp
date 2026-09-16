@@ -104,11 +104,23 @@ namespace mlp {
 
         switch (activation) {
             case Activation::SIGMOID:
-
+                compute_hidden_gradients<Sigmoid>(
+                    dC_da.data(),
+                    left_activations.data(), right_activations.data(),
+                    weights.data(),
+                    left_activations.columns(), right_activations.columns(), left_activations.rows(),
+                    weight_gradients.data(), bias_gradients.data(), dC_da_next.data()
+                );
             break;
 
             case Activation::TANH:
-
+                compute_hidden_gradients<Tanh>(
+                    dC_da.data(),
+                    left_activations.data(), right_activations.data(),
+                    weights.data(),
+                    left_activations.columns(), right_activations.columns(), left_activations.rows(),
+                    weight_gradients.data(), bias_gradients.data(), dC_da_next.data()
+                );
             break;
 
             case Activation::RELU:

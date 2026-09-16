@@ -4,10 +4,7 @@
 namespace mlp {
     void Context::synchronise() const {
         cl_int err = clFinish(m_impl->commandQueue);
-
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to wait for the command queue to finish");
-        }
+        if (err != CL_SUCCESS) CL_ERROR(err, "Failed to wait for the command queue to finish");
     }
 
     void Context::transfer(Matrix& dest, const float* src) const {

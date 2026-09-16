@@ -26,11 +26,15 @@ namespace mlp {
             block_count(result.columns(), block.y)
         );
 
+        if (m_profiler) m_profiler->startTask("Compute Loss");
+
         switch (loss) {
             case Loss::CCE:
                 cce_kernel<<<grid, block>>>(outputs.data(), targets.data(), outputs.columns(), outputs.rows(), result.data());
             break;
         }
+
+        if (m_profiler) m_profiler->endTask("Compute Loss");
 
         err = cudaGetLastError();
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute loss error");

@@ -28,7 +28,7 @@ namespace mlp {
         void startTask(const std::string& name);
         void endTask(const std::string& name);
 
-        void startBenchmark(); // measures the total time spent on the CUDA stream between the start and end of the benchmarking period
+        void startBenchmark();
         void endBenchmark();
 
         void clear();

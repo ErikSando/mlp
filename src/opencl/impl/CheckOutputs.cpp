@@ -9,8 +9,6 @@ namespace mlp {
         Buffer device_labels = createBuffer(samples * sizeof(int));
         transfer(device_labels, (void*) labels.data());
 
-        if (m_profiler) m_profiler->startTask("Check Outputs");
-
         Kernel_up& kernel = m_impl->kernels[opencl::KernelID::CHECK_OUTPUTS];
 
         m_impl->setKernelArg(kernel, 0, outputs.data());
@@ -22,6 +20,8 @@ namespace mlp {
 
         size_t lws = LOCAL_WORK_SIZE;
         size_t gws = global_work_size(lws, samples);
+
+        if (m_profiler) m_profiler->startTask("Check Outputs");
 
         cl_int err = clEnqueueNDRangeKernel(m_impl->commandQueue, kernel->getCLKernel(), 1, nullptr, &gws, &lws, 0, nullptr, nullptr);
         if (err != CL_SUCCESS) CL_ERROR(err, "Failed to enqueue check outputs kernel");

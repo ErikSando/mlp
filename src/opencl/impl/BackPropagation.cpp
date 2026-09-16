@@ -28,8 +28,6 @@ namespace mlp {
 
         Kernel_up& kernel = m_impl->kernels[opencl::KernelID::BACKPROP_HIDDEN];
 
-        if (m_profiler) m_profiler->startTask("Compute Hidden Layer Gradients");
-
         m_impl->setKernelArg(kernel, 0, dC_da.data());
         m_impl->setKernelArg(kernel, 1, left_activations.data());
         m_impl->setKernelArg(kernel, 2, right_activations.data());
@@ -49,6 +47,8 @@ namespace mlp {
             global_work_size(lws[1], right_activations.columns()),
             global_work_size(lws[2], left_activations.rows())
         };
+
+        if (m_profiler) m_profiler->startTask("Compute Hidden Layer Gradients");
 
         cl_int err = clEnqueueNDRangeKernel(m_impl->commandQueue, kernel->getCLKernel(), 3, nullptr, gws, lws, 0, nullptr, nullptr);
         if (err != CL_SUCCESS) CL_ERROR(err, "Failed to enqueue hidden layer back propagation kernel");
@@ -84,8 +84,6 @@ namespace mlp {
 
         Kernel_up& kernel = m_impl->kernels[opencl::KernelID::BACKPROP_OUTPUT];
 
-        if (m_profiler) m_profiler->startTask("Compute Output Layer Gradients");
-
         m_impl->setKernelArg(kernel, 0, last_hidden_activations.data());
         m_impl->setKernelArg(kernel, 1, output_activations.data());
         m_impl->setKernelArg(kernel, 2, weights.data());
@@ -107,6 +105,8 @@ namespace mlp {
             global_work_size(lws[2], last_hidden_activations.rows())
         };
 
+        if (m_profiler) m_profiler->startTask("Compute Output Layer Gradients");
+
         cl_int err = clEnqueueNDRangeKernel(m_impl->commandQueue, kernel->getCLKernel(), 3, nullptr, gws, lws, 0, nullptr, nullptr);
         if (err != CL_SUCCESS) CL_ERROR(err, "Failed to enqueue output layer back propagation kernel");
 
@@ -119,8 +119,6 @@ namespace mlp {
 
         Kernel_up& kernel = m_impl->kernels[opencl::KernelID::OPTIMISE_LAYER];
 
-        if (m_profiler) m_profiler->startTask("Optimise Layer");
-
         m_impl->setKernelArg(kernel, 0, weights.data());
         m_impl->setKernelArg(kernel, 1, biases.data());
         m_impl->setKernelArg(kernel, 2, weight_gradients.data());
@@ -131,6 +129,8 @@ namespace mlp {
 
         size_t lws = LOCAL_WORK_SIZE;
         size_t gws = global_work_size(lws, weights.size());
+
+        if (m_profiler) m_profiler->startTask("Optimise Layer");
 
         cl_int err = clEnqueueNDRangeKernel(m_impl->commandQueue, kernel->getCLKernel(), 1, nullptr, &gws, &lws, 0, nullptr, nullptr);
         if (err != CL_SUCCESS) CL_ERROR(err, "Failed to enqueue optimise layer kernel");

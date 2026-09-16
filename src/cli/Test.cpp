@@ -27,9 +27,11 @@ namespace mlp {
                 model->checkOutputs(batch.labels, correct, classifications);
             }
 
-            dataset.parseBatch(batch);
-            model->forwardPass(batch);
-            model->checkOutputs(batch.labels, correct, classifications, remainder);
+            if (remainder > 0) {
+                dataset.parseBatch(batch);
+                model->forwardPass(batch);
+                model->checkOutputs(batch.labels, correct, classifications, remainder);
+            }
 
             int host_correct;
 

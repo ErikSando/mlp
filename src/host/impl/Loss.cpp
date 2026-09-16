@@ -19,10 +19,14 @@ namespace mlp {
     }
 
     void Context::computeLoss(const Matrix& outputs, const Matrix& targets, Matrix& results, const Loss loss) const {
+        if (m_profiler) m_profiler->startTask("Compute Loss");
+
         switch (loss) {
             case Loss::CCE:
                 cce_loss(outputs.data(), targets.data(), results.data(), outputs.rows(), outputs.columns());
             break;
         }
+
+        if (m_profiler) m_profiler->endTask("Compute Loss");
     }
 }

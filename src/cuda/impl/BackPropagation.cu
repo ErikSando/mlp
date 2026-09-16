@@ -191,8 +191,6 @@ namespace mlp {
 
         cudaError_t err;
 
-        if (m_profiler) m_profiler->startTask("Compute Hidden Layer Gradients");
-
         dim3 block(8, 8, 8);
 
         dim3 grid(
@@ -200,6 +198,8 @@ namespace mlp {
             block_count(right_activations.columns(), block.y),
             block_count(right_activations.rows(), block.z)
         );
+
+        if (m_profiler) m_profiler->startTask("Compute Hidden Layer Gradients");
 
         compute_hidden_gradients_kernel<LeakyReLU><<<grid, block>>>(
             dC_da.data(),
@@ -299,9 +299,9 @@ namespace mlp {
 
         cudaError_t err;
 
-        if (m_profiler) m_profiler->startTask("Optimise Layer");
-
         unsigned int grid_size = block_count(weights.size(), TILE_SIZE);
+
+        if (m_profiler) m_profiler->startTask("Optimise Layer");
 
         optimise_layer_kernel<<<grid_size, TILE_SIZE>>>(weights.data(), biases.data(), weight_gradients.data(), bias_gradients.data(), weights.size(), biases.size(), learning_rate);
 

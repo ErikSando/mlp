@@ -98,6 +98,7 @@ namespace mlp {
     void Profiler::startBenchmark() {
         if (!m_tasks.contains(profiler_settings::BENCHMARK_TASK_NAME)) {
             m_taskOrder.push_back(profiler_settings::BENCHMARK_TASK_NAME);
+            newTask(profiler_settings::BENCHMARK_TASK_NAME);
         }
 
         m_tasks.at(profiler_settings::BENCHMARK_TASK_NAME).start();

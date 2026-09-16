@@ -66,6 +66,7 @@ namespace mlp {
         // m_impl->kernels.push_back(std::make_unique<opencl::Kernel>(kernelResources, opencl::kernel_paths::PROPAGATION, "propagation"));
 
         m_impl->kernels[opencl::KernelID::PROPAGATION] = std::make_unique<opencl::Kernel>(kernelResources, opencl::kernel_paths::PROPAGATION, "propagate");
+        m_impl->kernels[opencl::KernelID::SOFTMAX] = std::make_unique<opencl::Kernel>(kernelResources, opencl::kernel_paths::SOFTMAX, "softmax");
 
         if (m_profiler) {
             m_profiler->m_impl->commandQueue = m_impl->commandQueue;

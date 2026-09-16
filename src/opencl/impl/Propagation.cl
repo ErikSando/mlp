@@ -14,7 +14,7 @@ __kernel void propagate(
     float logit = biases[col];
 
     for (size_t c = 0; c < n_left; c++) {
-        logit += left_activations[row * n_left + c] * weights[c * n_left + col];
+        logit += left_activations[row * n_left + c] * weights[c * n_right + col];
     }
 
     right_logits[row * n_right + col] = logit;
@@ -22,21 +22,12 @@ __kernel void propagate(
     float activation = logit;
 
     switch (activation_function) {
-        case LEAKY_RELU:
-            activation = logit >= 0.0f ? logit : 0.01f * activation;
-        break;
+        case LEAKY_RELU:    activation = logit >= 0.0f ? logit : 0.01f * activation; break;
+        case RELU:          activation = logit >= 0.0f ? logit : 0.0f; break;
+        case SIGMOID:       activation = 1.0f / (1.0f + exp(-logit)); break;
+        case TANH:          activation = tanh(logit); break;
 
-        case RELU:
-            activation = logit >= 0.0f ? logit : 0.0f;
-        break;
-
-        case SIGMOID:
-            activation = 1.0f / (1.0f + exp(-logit));
-        break;
-
-        case TANH:
-            activation = tanh(logit);
-        break;
+        case SOFTMAX: return;
 
         default: break;
     }

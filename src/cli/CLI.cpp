@@ -75,7 +75,7 @@ namespace mlp {
         mlp::Matrix r_z = context.createMatrix(3, 8);
         mlp::Matrix r_a = context.createMatrix(3, 8);
 
-        mlp::Matrix w = context.createMatrix(8, 5);
+        mlp::Matrix w = context.createMatrix(5, 8);
         mlp::Matrix b = context.createMatrix(8, 1);
 
         float h_la[3 * 5] = {
@@ -88,10 +88,10 @@ namespace mlp {
 
         float h_w[5 * 8] = {
             0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
-            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
-            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
-            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,
-            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1
+            0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2,
+            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.5,
+            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.3,
+            0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.4
         };
 
         float h_b[8] = { 0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7 };
@@ -131,20 +131,31 @@ namespace mlp {
         }
         std::cout << "\n\n";
 
-        context.propagate(l_a, r_z, r_a, w, b, Activation::RELU);
+        context.propagate(l_a, r_z, r_a, w, b, Activation::SOFTMAX);
 
-        std::vector<float> h_r(3 * 8);
+        std::vector<float> h_ra(3 * 8);
+        std::vector<float> h_rz(3 * 8);
 
         context.synchronise();
 
-        context.transfer(h_r.data(), r_a);
+        context.transfer(h_ra.data(), r_a);
+        context.transfer(h_rz.data(), r_z);
 
         context.synchronise();
 
         for (size_t r = 0; r < 3; r++) {
-            std::cout << h_r[r * 8];
+            std::cout << h_rz[r * 8];
             for (size_t c = 1; c < 8; c++) {
-                std::cout << ", " << h_r[r * 8 + c];
+                std::cout << ", " << h_rz[r * 8 + c];
+            }
+            std::cout << "\n";
+        }
+        std::cout << "\n";
+
+        for (size_t r = 0; r < 3; r++) {
+            std::cout << h_ra[r * 8];
+            for (size_t c = 1; c < 8; c++) {
+                std::cout << ", " << h_ra[r * 8 + c];
             }
             std::cout << "\n";
         }

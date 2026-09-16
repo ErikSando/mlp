@@ -15,7 +15,7 @@ namespace mlp {
         if (row >= rows) return;
 
         unsigned int tid = threadIdx.x;
-        unsigned int stride = blockDim.x;
+        unsigned int stride = blockDim.x; // should equal BLOCK_SIZE
 
         __shared__ float shared[BLOCK_SIZE]; // size of shared[] needs to match blockDim.x, which is equal to mlp::BLOCK_SIZE
 

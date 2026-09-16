@@ -1,5 +1,6 @@
 #include "context/Context.hpp"
 #include "opencl/ContextImpl.hpp"
+#include "opencl/impl/Config.h"
 #include "opencl/impl/Enums.h"
 #include "opencl/Kernel.hpp"
 
@@ -14,7 +15,7 @@ namespace mlp {
 
         using Kernel_up = std::unique_ptr<opencl::Kernel>;
 
-        Kernel_up& propagation_kernel = m_impl->kernels[opencl::KernelID::PROPAGATION];
+        Kernel_up& propagate_kernel = m_impl->kernels[opencl::KernelID::PROPAGATION];
 
         CLActivation cl_activation = NONE;
 
@@ -36,51 +37,42 @@ namespace mlp {
             break;
         }
 
-        err = propagation_kernel->setArgument(0, left_activations.data());
+        // err = propagate_kernel->setArgument(0, left_activations.data());
+        // if (err != CL_SUCCESS) CL_ERROR(err, "Failed to set kernel argument 0");
 
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to set kernel arguments 0");
-        }
-        err = propagation_kernel->setArgument(1, right_logits.data());
+        // err = propagate_kernel->setArgument(1, right_logits.data());
+        // if (err != CL_SUCCESS) CL_ERROR(err, "Failed to set kernel argument 1");
+    
+        // err = propagate_kernel->setArgument(2, right_activations.data());
+        // if (err != CL_SUCCESS) CL_ERROR(err, "Failed to set kernel argument 2");
 
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to set kernel arguments 1");
-        }
-        err = propagation_kernel->setArgument(2, right_activations.data());
+        // err = propagate_kernel->setArgument(3, weights.data());
+        // if (err != CL_SUCCESS) CL_ERROR(err, "Failed to set kernel argument 3");
 
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to set kernel arguments 2");
-        }
-        err = propagation_kernel->setArgument(3, weights.data());
+        // err = propagate_kernel->setArgument(4, biases.data());
+        // if (err != CL_SUCCESS) CL_ERROR(err, "Failed to set kernel argument 4");
 
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to set kernel arguments 3");
-        }
-        err = propagation_kernel->setArgument(4, biases.data());
+        // err = propagate_kernel->setArgument(5, static_cast<unsigned int>(right_logits.rows()));
+        // if (err != CL_SUCCESS) CL_ERROR(err, "Failed to set kernel argument 5");
 
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to set kernel arguments 4");
-        }
-        err = propagation_kernel->setArgument(5, static_cast<int>(right_logits.rows()));
+        // err = propagate_kernel->setArgument(6, static_cast<unsigned int>(left_activations.columns()));
+        // if (err != CL_SUCCESS) CL_ERROR(err, "Failed to set kernel argument 6");
 
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to set kernel arguments 5");
-        }
-        err = propagation_kernel->setArgument(6, static_cast<int>(left_activations.columns()));
+        // err = propagate_kernel->setArgument(7, static_cast<unsigned int>(right_logits.columns()));
+        // if (err != CL_SUCCESS) CL_ERROR(err, "Failed to set kernel argument 7");
 
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to set kernel arguments 6");
-        }
-        err = propagation_kernel->setArgument(7, static_cast<int>(right_logits.columns()));
+        // err = propagate_kernel->setArgument(8, cl_activation);
+        // if (err != CL_SUCCESS) CL_ERROR(err, "Failed to set kernel argument 8");
 
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to set kernel arguments 7");
-        }
-        err = propagation_kernel->setArgument(8, cl_activation);
-
-        if (err != CL_SUCCESS) {
-            ERROR("Failed to set kernel arguments");
-        }
+        m_impl->setKernelArg(propagate_kernel, 0, left_activations.data());
+        m_impl->setKernelArg(propagate_kernel, 1, right_logits.data());
+        m_impl->setKernelArg(propagate_kernel, 2, right_activations.data());
+        m_impl->setKernelArg(propagate_kernel, 3, weights.data());
+        m_impl->setKernelArg(propagate_kernel, 4, biases.data());
+        m_impl->setKernelArg(propagate_kernel, 5, static_cast<unsigned int>(right_logits.rows()));
+        m_impl->setKernelArg(propagate_kernel, 6, static_cast<unsigned int>(left_activations.columns()));
+        m_impl->setKernelArg(propagate_kernel, 7, static_cast<unsigned int>(right_logits.columns()));
+        m_impl->setKernelArg(propagate_kernel, 8, cl_activation);
 
         size_t lws[2] = { LOCAL_WORK_SIZE, LOCAL_WORK_SIZE };
 
@@ -89,10 +81,22 @@ namespace mlp {
             global_work_size(lws[1], right_activations.rows())
         };
 
-        err = clEnqueueNDRangeKernel(m_impl->commandQueue, propagation_kernel->getCLKernel(), 2, nullptr, gws, lws, 0, nullptr, nullptr);
+        err = clEnqueueNDRangeKernel(m_impl->commandQueue, propagate_kernel->getCLKernel(), 2, nullptr, gws, lws, 0, nullptr, nullptr);
+        if (err != CL_SUCCESS) CL_ERROR(err, "Failed to enqueue propagate kernel");
 
-        if (err != CL_SUCCESS) {
-            CL_ERROR(err, "Failed to enqueue propagate kernel");
+        if (activation == Activation::SOFTMAX) {
+            size_t lws = SOFTMAX_WORK_GROUP_SIZE;
+            size_t gws = lws * right_logits.rows();
+
+            Kernel_up& softmax_kernel = m_impl->kernels[opencl::KernelID::SOFTMAX];
+
+            m_impl->setKernelArg(softmax_kernel, 0, right_logits.data());
+            m_impl->setKernelArg(softmax_kernel, 1, right_activations.data());
+            m_impl->setKernelArg(softmax_kernel, 2, static_cast<unsigned int>(right_logits.rows()));
+            m_impl->setKernelArg(softmax_kernel, 3, static_cast<unsigned int>(right_logits.columns()));
+
+            err = clEnqueueNDRangeKernel(m_impl->commandQueue, softmax_kernel->getCLKernel(), 1, nullptr, &gws, &lws, 0, nullptr, nullptr);
+            if (err != CL_SUCCESS) CL_ERROR(err, "Failed to enqueue softmax kernel");
         }
     }
 }

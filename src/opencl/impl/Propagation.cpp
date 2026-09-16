@@ -11,9 +11,14 @@ namespace mlp {
         const Matrix& weights, const Matrix& biases,
         const Activation activation
     ) const {
-        cl_int err;
+        assert(left_activations.columns() == weights.rows());
+        assert(right_activations.rows() == left_activations.rows());
+        assert(right_activations.columns() == weights.columns());
+        assert(right_activations.size() == right_logits.size());
 
-        using Kernel_up = std::unique_ptr<opencl::Kernel>;
+        if (m_profiler) m_profiler->startTask("Propagation");
+
+        cl_int err;
 
         Kernel_up& propagate_kernel = m_impl->kernels[opencl::KernelID::PROPAGATION];
 
@@ -85,6 +90,8 @@ namespace mlp {
         if (err != CL_SUCCESS) CL_ERROR(err, "Failed to enqueue propagate kernel");
 
         if (activation == Activation::SOFTMAX) {
+            if (m_profiler) m_profiler->startTask("Softmax");
+
             size_t lws = SOFTMAX_WORK_GROUP_SIZE;
             size_t gws = lws * right_logits.rows();
 
@@ -97,6 +104,10 @@ namespace mlp {
 
             err = clEnqueueNDRangeKernel(m_impl->commandQueue, softmax_kernel->getCLKernel(), 1, nullptr, &gws, &lws, 0, nullptr, nullptr);
             if (err != CL_SUCCESS) CL_ERROR(err, "Failed to enqueue softmax kernel");
+
+            if (m_profiler) m_profiler->endTask("Softmax");
         }
+
+        if (m_profiler) m_profiler->endTask("Propagation");
     }
 }

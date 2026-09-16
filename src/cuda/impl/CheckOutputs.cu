@@ -69,13 +69,13 @@ namespace mlp {
 
         if (row >= rows) return;
 
-        float max = -__FLT_MAX__;
+        float max_value = -__FLT_MAX__;
         int classification = -1;
 
         for (size_t col = 0; col < cols; col++) {
             float output = outputs[row * cols + col];
-            if (output > max) {
-                max = output;
+            if (output > max_value) {
+                max_value = output;
                 classification = (int) col;
             }
         }
@@ -98,11 +98,11 @@ namespace mlp {
 
         if (m_profiler) m_profiler->startTask("Check Outputs");
 
-        // check_outputs_kernel<<<outputs.rows(), BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), outputs.rows(), outputs.columns(), (int*) correct.data(), (int*) classifications.data());
+        // check_outputs_kernel<<<samples, BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), samples, outputs.columns(), (int*) correct.data(), (int*) classifications.data());
 
         // using this simple kernel until I can fix the other one
 
-        unsigned int grid_size = block_count(outputs.rows(), BLOCK_SIZE);
+        unsigned int grid_size = block_count(samples, BLOCK_SIZE);
         check_outputs_simple_kernel<<<grid_size, BLOCK_SIZE>>>(outputs.data(), (int*) device_labels.data(), samples, outputs.columns(), (int*) correct.data(), (int*) classifications.data());
 
         if (m_profiler) m_profiler->endTask("Check Outputs");

@@ -34,6 +34,7 @@ namespace mlp {
             int host_correct;
 
             context.transfer((void*) &host_correct, correct);
+            context.synchronise();
 
             size_t total = n_batches * batch_size + remainder;
             size_t correct_ul = (size_t) host_correct;

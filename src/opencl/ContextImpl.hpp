@@ -13,6 +13,7 @@ namespace mlp {
         namespace kernel_paths {
             inline const std::string PROPAGATION = std::string(MLP_CL_KERNEL_DIR) + "Propagation.cl";
             inline const std::string SOFTMAX = std::string(MLP_CL_KERNEL_DIR) + "Softmax.cl";
+            inline const std::string CHECK_OUTPUTS = std::string(MLP_CL_KERNEL_DIR) + "CheckOutputs.cl";
         }
 
         struct KernelID {
@@ -22,7 +23,7 @@ namespace mlp {
                 BACKPROP_OUTPUTS,
                 BACKPROP_HIDDENS,
                 OPTIMISE,
-                // CHECK_OUTPUTS,
+                CHECK_OUTPUTS,
                 COUNT
             };
         };
@@ -34,6 +35,8 @@ namespace mlp {
         return (dimension + local_work_size - 1) / local_work_size * local_work_size; // division of integers rounds down
     }
 
+    using Kernel_up = std::unique_ptr<opencl::Kernel>;
+
     struct Context::Impl {
         cl_platform_info platformInfo;
         cl_platform_id platformIDs[100];
@@ -43,12 +46,12 @@ namespace mlp {
         cl_context clContext;
         cl_command_queue commandQueue;
 
-        std::vector<std::unique_ptr<opencl::Kernel>> kernels;
+        std::vector<Kernel_up> kernels;
 
         Impl() : kernels(opencl::KernelID::COUNT) {}
 
         template<typename T>
-        void setKernelArg(const std::unique_ptr<opencl::Kernel>& kernel, const cl_uint index, const T& arg) {
+        void setKernelArg(const Kernel_up& kernel, const cl_uint index, const T& arg) {
             cl_int err = kernel->setArgument(index, arg);
 
             if (err != CL_SUCCESS) {
@@ -57,7 +60,7 @@ namespace mlp {
         }
 
         template<typename T>
-        void setKernelArg(const std::unique_ptr<opencl::Kernel>& kernel, const cl_uint index, const T& arg, const std::string& err_msg) {
+        void setKernelArg(const Kernel_up& kernel, const cl_uint index, const T& arg, const std::string& err_msg) {
             cl_int err = kernel->setArgument(index, arg);
 
             if (err != CL_SUCCESS) {

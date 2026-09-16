@@ -12,6 +12,7 @@ namespace mlp {
     namespace opencl {
         namespace kernel_paths {
             inline const std::string PROPAGATION = std::string(MLP_CL_KERNEL_DIR) + "Propagation.cl";
+            inline const std::string BACK_PROPAGATION = std::string(MLP_CL_KERNEL_DIR) + "BackPropagation.cl";
             inline const std::string SOFTMAX = std::string(MLP_CL_KERNEL_DIR) + "Softmax.cl";
             inline const std::string CHECK_OUTPUTS = std::string(MLP_CL_KERNEL_DIR) + "CheckOutputs.cl";
         }
@@ -20,10 +21,10 @@ namespace mlp {
             enum : size_t {
                 PROPAGATION,
                 SOFTMAX,
-                BACKPROP_OUTPUTS,
-                BACKPROP_HIDDENS,
-                OPTIMISE,
                 CHECK_OUTPUTS,
+                BACKPROP_OUTPUT,
+                BACKPROP_HIDDEN,
+                OPTIMISE_LAYER,
                 COUNT
             };
         };

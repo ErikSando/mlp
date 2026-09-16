@@ -11,11 +11,11 @@ namespace mlp {
         }
 
         __device__ static float derivative(float z) {
-            return 1;
+            return 1.0f;
         }
 
         __device__ static float derivative_from_a(float a) {
-            return 1;
+            return 1.0f;
         }
     };
 
@@ -26,11 +26,11 @@ namespace mlp {
 
         __device__ static float derivative(float z) {
             float a = activate(z);
-            return a * (1 - a);
+            return a * (1.0f - a);
         }
 
         __device__ static float derivative_from_a(float a) {
-            return a * (1 - a);
+            return a * (1.0f - a);
         }
     };
 
@@ -41,11 +41,11 @@ namespace mlp {
 
         __device__ static float derivative(float z) {
             float a = activate(z);
-            return 1 - a * a;
+            return 1.0f - a * a;
         }
 
         __device__ static float derivative_from_a(float a) {
-            return 1 - a * a;
+            return 1.0f - a * a;
         }
     };
 
@@ -83,7 +83,7 @@ namespace mlp {
         }
 
         __device__ static float derivative_from_a(float a) {
-            return a * (1 - a);
+            return a * (1.0f - a);
         }
     };
 }

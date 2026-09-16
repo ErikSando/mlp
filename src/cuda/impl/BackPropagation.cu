@@ -109,8 +109,6 @@ namespace mlp {
         float dz_da_left = weights[weight_index];
         float dC_da_left = dC_dz * dz_da_left;
 
-        // need some reduction method for these, fix it later:
-
         atomicAdd(&dC_da_next[sample * n_left + left_index], dC_da_left);
         atomicAdd(&weight_gradients[weight_index], dC_dw / batch_size);
 
@@ -162,7 +160,12 @@ namespace mlp {
         }
     }
 
-    __global__ void optimise_layer_kernel(float* weights, float* biases, const float* weight_gradients, const float* bias_gradients, const size_t n_weights, const size_t n_biases, const float learning_rate) {
+    __global__ void optimise_layer_kernel(
+        float* weights, float* biases,
+        const float* weight_gradients, const float* bias_gradients,
+        const size_t n_weights, const size_t n_biases,
+        const float learning_rate
+    ) {
         unsigned int index = blockIdx.x * blockDim.x + threadIdx.x;
 
         if (index >= n_weights) return;

@@ -113,7 +113,8 @@ namespace mlp {
         if (m_profiler) m_profiler->endTask("Compute Output Layer Gradients");
     }
 
-    void Context::optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const float learning_rate) const {
+    // void Context::optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const float learning_rate) const {
+    void Context::optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const OptimiserConfig& optimiser_config) const {
         assert(weights.size() == weight_gradients.size());
         assert(biases.size() == bias_gradients.size());
 
@@ -125,7 +126,7 @@ namespace mlp {
         m_impl->setKernelArg(kernel, 3, bias_gradients.data());
         m_impl->setKernelArg(kernel, 4, static_cast<unsigned int>(weights.size()));
         m_impl->setKernelArg(kernel, 5, static_cast<unsigned int>(biases.size()));
-        m_impl->setKernelArg(kernel, 6, learning_rate);
+        m_impl->setKernelArg(kernel, 6, optimiser_config.learningRate);
 
         size_t lws = LOCAL_WORK_SIZE;
         size_t gws = global_work_size(lws, weights.size());

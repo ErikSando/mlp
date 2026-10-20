@@ -28,6 +28,7 @@ namespace mlp {
 
     std::unordered_map<std::string, Activation> activation_functions; // maybe seperate hidden and output activation functions
     std::unordered_map<std::string, Loss> loss_functions;
+    std::unordered_map<std::string, OptimiserType> optimiser_types;
 
     void command_loop() {
         mlp::Dataset mnist_train_ds("res/mnist/mnist_train.csv");
@@ -48,6 +49,10 @@ namespace mlp {
 
         loss_functions["cce"] = Loss::CCE;
         loss_functions["mse"] = Loss::MSE;
+
+        optimiser_types["basicsgd"] = OptimiserType::BasicSGD;
+        optimiser_types["momentumsgd"] = OptimiserType::MomentumSGD;
+        optimiser_types["adam"] = OptimiserType::Adam;
 
         std::unordered_map<std::string, mlp::MLP> models;
 
@@ -90,12 +95,13 @@ namespace mlp {
             }
             else if (cmd == "help") {
                 std::cout << "\nhelp\n - Displays this menu.\n";
-                std::cout << "\nbuild [name] [no. inputs] [hidden layer sizes] [no. outputs] [hidden activiation] [output activation] [loss] [batch size: optional] [learning rate: optional]\
-\n - Build a model with the given parameters. For hidden layer sizes, give values seperated by commas e.g. 128,64 (without spaces). For no hidden layers leave any non-number character. \
+                std::cout << "\nbuild [name] [no. inputs] [hidden layer sizes] [no. outputs] [hidden activiation] [output activation] [loss function] [optimiser algorithm] [batch size] [learning rate]\
+\n - Build a model with the given configurations. For hidden layer sizes, give values seperated by commas e.g. 128,64 (without spaces). For no hidden layers leave any non-number character. \
 If no value is given, the default batch size is 32, and the default learning rate is 0.01.\
-\n Hidden activation functions:\n - none, relu, leakyrelu, sigmoid, tanh.\
-\n Output activation functions:\n - none, softmax.\
-\n Loss functions:\n - cce, mse.\n";
+\n Hidden activation functions:\n - (default) leakyrelu, relu, sigmoid, tanh, none.\
+\n Output activation functions:\n - (default) softmax, none.\
+\n Loss functions:\n - (default) cce, mse.\
+\n Optimiser algorithms:\n - (default) basicsgd, momentumsgd, adam.\n";
                 std::cout << "\nactiviate [name]\n - Set the model with the given name as the current model. Any commands ran will use this model.\n";
                 std::cout << "\ninfo\n - Display information about the model: layer sizes, activation functions, loss function, batch size, and learning rate.\n";
                 std::cout << "\train [no. epochs] [dataset file path]\n - Train the model with the specified number of epochs, using the specified dataset file.\n";
@@ -106,12 +112,15 @@ If no value is given, the default batch size is 32, and the default learning rat
                 \n   If an argument is given (e.g. true, false), it will be used to set whether the profiler automatically prints after the test and train commands.\n";
                 std::cout << "\nsave [save path]\n - Save the model data to a file. This includes the name, layer sizes, activation functions, loss function, batch size, and learning rate.\n";
                 std::cout << "\nload [model name] [save path]\n - Build a new model with the given name using the data from the save file. If a model with the same name already exists, it will not be overwritten.\n";
+                std::cout << "\nget [config]\n - Display the value of configuration value.\
+\n Configuration values:\n - bs (batch size), lr (learning rate), ha (hidden layer activation function), oa (output layer activation function), loss (loss function), opt (optimiser algorithm).\n";
+                std::cout << "\nset [config] [value]\n - Set the value of a configuration value.\n";
                 std::cout << "\nexit\n - Terminate the program.\n - Aliases: quit.\n\n";
             }
             else if (cmd == "build") {
-                if (args.size() < 8) {
+                if (args.size() < 5) {
                     std::cout << "Insufficient arguments" << std::endl;
-                    std::cout << "Usage: build [name] [no. inputs] [hidden layer sizes] [no. outputs] [hidden activiation] [output activation] [loss] [batch size: optional] [learning rate: optional]" << std::endl;
+                    std::cout << "Usage: build [name] [no. inputs] [hidden layer sizes] [no. outputs] [hidden activiation] [output activation] [loss function] [optimiser algorithm] [batch size] [learning rate]" << std::endl;
                     continue;
                 }
 
@@ -164,11 +173,18 @@ If no value is given, the default batch size is 32, and the default learning rat
                     if (layer_size > 0) layer_sizes.push_back(layer_size);
                 }
 
+
                 layer_sizes.push_back(std::stoi(args.at(4)));
 
-                std::string hidden_activation_str = to_lower(args.at(5));
-                std::string output_activation_str = to_lower(args.at(6));
-                std::string loss_function_str = to_lower(args.at(7));
+                std::string hidden_activation_str = "leakyrelu";
+                std::string output_activation_str = "softmax";
+                std::string loss_function_str = "cce";
+                std::string optimiser_alg_str = "basicsgd";
+
+                if (args.size() > 5) hidden_activation_str = to_lower(args.at(5));
+                if (args.size() > 6) output_activation_str = to_lower(args.at(6));
+                if (args.size() > 7) loss_function_str = to_lower(args.at(7));
+                if (args.size() > 8) optimiser_alg_str = to_lower(args.at(8));
 
                 if (activation_functions.find(hidden_activation_str) == activation_functions.end()) {
                     std::cerr << "Invalid hidden layer activation function: '" << hidden_activation_str << "'\n";
@@ -185,9 +201,15 @@ If no value is given, the default batch size is 32, and the default learning rat
                     continue;
                 }
 
+                if (optimiser_types.find(optimiser_alg_str) == optimiser_types.end()) {
+                    std::cerr << "Invalid optimiser algorithm: '" << optimiser_alg_str << "'\n";
+                    continue;
+                }
+
                 Activation hidden_activation = activation_functions.at(hidden_activation_str);
                 Activation output_activation = activation_functions.at(output_activation_str);
                 Loss loss_function = loss_functions.at(loss_function_str);
+                OptimiserType optimiser_type = optimiser_types.at(optimiser_alg_str);
 
                 size_t batch_size = args.size() > 8 ? (size_t) std::stoi(args.at(8)) : BATCH_SIZE;
                 float learning_rate = args.size() > 9 ? std::stof(args.at(9)) : LEARNING_RATE;
@@ -195,7 +217,7 @@ If no value is given, the default batch size is 32, and the default learning rat
                 auto [it, _] = models.emplace(name, context);
 
                 // it is already checked that a model with the same name does not exist
-                it->second.init(layer_sizes, batch_size, hidden_activation, output_activation, loss_function, learning_rate);
+                it->second.init(layer_sizes, batch_size, hidden_activation, output_activation, loss_function, optimiser_type, learning_rate);
 
                 std::cout << "Created model with name '" << name << "'\n";
                 std::cout << "Layer sizes: " << layer_sizes[0];

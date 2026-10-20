@@ -19,11 +19,12 @@ namespace mlp {
         size_t n_classes = m_layers.back()->activations.columns();
         size_t n_outputs = m_layers.back()->activations.size();
 
-        float* outputs = new float[n_outputs];
-        copyOutputs(outputs);
+        std::vector<float> outputs(n_outputs);
+        m_context.transfer(outputs.data(), m_layers.back()->activations);
+        m_context.synchronise();
 
         info.outputs.resize(n_classes);
-        std::memcpy(info.outputs.data(), outputs, n_classes * sizeof(float));
+        std::memcpy(info.outputs.data(), outputs.data(), n_classes * sizeof(float));
 
         int classification = UNDEFINED_CLASS;
         float max_value = 0.0f;
@@ -34,8 +35,6 @@ namespace mlp {
                 classification = i;
             }
         }
-
-        delete[] outputs;
 
         info.classification = classification;
 
@@ -54,6 +53,7 @@ namespace mlp {
         m_context.transfer(targets, host_targets.data());
         m_context.computeLoss(m_layers.back()->activations, targets, results, m_lossFunction);
         m_context.transfer(host_results.data(), results);
+        m_context.synchronise();
 
         info.error = host_results[0];
     }

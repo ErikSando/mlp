@@ -218,13 +218,14 @@ namespace mlp {
         if (m_profiler) m_profiler->endTask("Compute Output Layer Gradients");
     }
 
-    void Context::optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const float learning_rate) const {
+    // void Context::optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const float learning_rate) const {
+    void Context::optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const OptimiserConfig& optimiser_config) const {
         assert(weights.size() == weight_gradients.size());
         assert(biases.size() == bias_gradients.size());
 
         if (m_profiler) m_profiler->startTask("Optimise Layer");
 
-        optimise_layer(weights.data(), biases.data(), weight_gradients.data(), bias_gradients.data(), weights.rows(), weights.columns(), learning_rate);
+        optimise_layer(weights.data(), biases.data(), weight_gradients.data(), bias_gradients.data(), weights.rows(), weights.columns(), optimiser_config.learningRate);
 
         if (m_profiler) m_profiler->endTask("Optimise Layer");
     }

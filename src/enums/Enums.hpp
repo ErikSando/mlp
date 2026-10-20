@@ -22,6 +22,12 @@ namespace mlp {
 
     using OALP = OutputActivationLossPair;
 
+    enum class OptimiserType {
+        BasicSGD,
+        MomentumSGD,
+        Adam,
+    };
+
     // not sure what cpp file to define the std::map in so im using inline
 
     // Output activation function + loss function pairs

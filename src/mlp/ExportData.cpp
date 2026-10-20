@@ -18,7 +18,8 @@ namespace mlp {
         data.output_activation = m_layers.back()->activation;
         data.loss_function = m_lossFunction;
         data.batch_size = m_batchSize;
-        data.learning_rate = m_learningRate;
+        data.optimiser_type = m_optimiserConfig.type;
+        data.learning_rate = m_optimiserConfig.learningRate;
 
         data.weights.clear();
         data.biases.clear();

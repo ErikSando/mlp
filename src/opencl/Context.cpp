@@ -71,6 +71,8 @@ namespace mlp {
         m_impl->kernels[opencl::KernelID::BACKPROP_HIDDEN] = std::make_unique<opencl::Kernel>(kernelResources, opencl::kernel_paths::BACK_PROPAGATION, "compute_hidden_gradients");
         m_impl->kernels[opencl::KernelID::BACKPROP_OUTPUT] = std::make_unique<opencl::Kernel>(kernelResources, opencl::kernel_paths::BACK_PROPAGATION, "compute_output_gradients");
         m_impl->kernels[opencl::KernelID::OPTIMISE_LAYER] = std::make_unique<opencl::Kernel>(kernelResources, opencl::kernel_paths::BACK_PROPAGATION, "optimise_layer");
+        m_impl->kernels[opencl::KernelID::CCE] = std::make_unique<opencl::Kernel>(kernelResources, opencl::kernel_paths::LOSS, "cce");
+        m_impl->kernels[opencl::KernelID::MSE] = std::make_unique<opencl::Kernel>(kernelResources, opencl::kernel_paths::LOSS, "mse");
 
         if (m_profiler) {
             m_profiler->m_impl->commandQueue = m_impl->commandQueue;

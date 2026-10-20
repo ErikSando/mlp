@@ -5,12 +5,12 @@
 namespace mlp {
     std::string activation_string(const Activation activation) {
         switch (activation) {
-            case Activation::NONE:         return "none"; break;
-            case Activation::LEAKY_RELU:   return "leakyrelu"; break;
-            case Activation::RELU:         return "relu"; break;
-            case Activation::SIGMOID:      return "sigmoid"; break;
-            case Activation::TANH:         return "tanh"; break;
-            case Activation::SOFTMAX:      return "softmax"; break;
+            case Activation::NONE:           return "none"; break;
+            case Activation::LEAKY_RELU:     return "leakyrelu"; break;
+            case Activation::RELU:           return "relu"; break;
+            case Activation::SIGMOID:        return "sigmoid"; break;
+            case Activation::TANH:           return "tanh"; break;
+            case Activation::SOFTMAX:        return "softmax"; break;
             default:
                 throw std::runtime_error("Invalid activation function");
             break;
@@ -23,6 +23,17 @@ namespace mlp {
             case Loss::MSE:     return "mse"; break;
             default:
                 throw std::runtime_error("Invalid loss function");
+            break;
+        }
+    }
+
+    std::string optimiser_string(const OptimiserType optimiser_type) {
+        switch (optimiser_type) {
+            case OptimiserType::BasicSGD:        return "basicsgd"; break;
+            case OptimiserType::MomentumSGD:     return "momentumsgd"; break;
+            case OptimiserType::Adam:            return "adam"; break;
+            default:
+                throw std::runtime_error("Invalid optimiser algorithm");
             break;
         }
     }
@@ -44,6 +55,7 @@ namespace mlp {
             file << activation_string(data.hidden_activation) << seperator << activation_string(data.output_activation) << "\n";
 
             file << loss_string(data.loss_function) << "\n";
+            file << optimiser_string(data.optimiser_type) << "\n";
             file << data.batch_size << "\n";
             file << data.learning_rate << "\n";
 

@@ -16,6 +16,8 @@ namespace mlp {
             }
 
             // I think I should provide some training insights
+
+            // TODO: progress indicator (maybe just display the current epoch number)
         }
     }
 }

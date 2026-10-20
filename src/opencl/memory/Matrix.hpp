@@ -35,7 +35,7 @@ namespace mlp {
             size_t m_cols;
             size_t m_size;
 
-            cl_mem m_data;
+            cl_mem m_data = nullptr;
         };
     }
 }

@@ -5,6 +5,7 @@
 
 #include "context/MemoryConfig.hpp"
 #include "enums/Enums.hpp"
+#include "optimiser/OptimiserConfig.hpp"
 #include "profiling/Profiler.hpp"
 
 namespace mlp {
@@ -66,7 +67,8 @@ namespace mlp {
             Matrix& weight_gradients, Matrix& bias_gradients, Matrix& dC_da_hidden
         ) const; // output layer
 
-        void optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const float learning_rate) const;
+        // void optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const float learning_rate) const;
+        void optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const OptimiserConfig& optimiser_config) const;
 
         void checkOutputs(const Matrix& outputs, const std::vector<int>& labels, Buffer& correct, Buffer& classifications, const size_t samples) const;
 

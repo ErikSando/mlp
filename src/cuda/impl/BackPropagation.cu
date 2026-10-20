@@ -293,7 +293,8 @@ namespace mlp {
         if (err != cudaSuccess) CUDA_ERROR(err, "CUDA compute output layer gradients error");
     }
 
-    void Context::optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const float learning_rate) const {
+    // void Context::optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const float learning_rate) const {
+    void Context::optimiseLayer(Matrix& weights, Matrix& biases, const Matrix& weight_gradients, const Matrix& bias_gradients, const OptimiserConfig& optimiser_config) const {
         assert(weights.size() == weight_gradients.size());
         assert(biases.size() == bias_gradients.size());
 
@@ -303,7 +304,7 @@ namespace mlp {
 
         if (m_profiler) m_profiler->startTask("Optimise Layer");
 
-        optimise_layer_kernel<<<grid_size, TILE_SIZE>>>(weights.data(), biases.data(), weight_gradients.data(), bias_gradients.data(), weights.size(), biases.size(), learning_rate);
+        optimise_layer_kernel<<<grid_size, TILE_SIZE>>>(weights.data(), biases.data(), weight_gradients.data(), bias_gradients.data(), weights.size(), biases.size(), optimiser_config.learningRate);
 
         if (m_profiler) m_profiler->endTask("Optimise Layer");
 

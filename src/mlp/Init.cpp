@@ -10,12 +10,15 @@ namespace mlp {
         const size_t batch_size,
         const Activation hidden_activation, const Activation output_activation,
         const Loss loss_function,
+        const OptimiserType optimiser_type,
         const float learning_rate,
         const bool init_weights
     ) {
         m_batchSize = batch_size;
         m_lossFunction = loss_function;
-        m_learningRate = learning_rate;
+        // m_learningRate = learning_rate;
+        m_optimiserConfig.type = optimiser_type;
+        m_optimiserConfig.learningRate = learning_rate;
 
         const auto it = AL_PAIRS.find({ output_activation, loss_function });
 
@@ -81,7 +84,7 @@ namespace mlp {
             throw std::runtime_error("Incorrect number of bias vectors given");
         }
 
-        init(data.layer_sizes, data.batch_size, data.hidden_activation, data.output_activation, data.loss_function, data.learning_rate, false);
+        init(data.layer_sizes, data.batch_size, data.hidden_activation, data.output_activation, data.loss_function, data.optimiser_type, data.learning_rate, false);
 
         for (size_t i = 1; i < m_layers.size(); i++) {
             Layer_up& layer = m_layers.at(i);

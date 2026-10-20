@@ -1,9 +1,10 @@
 line 1: layer sizes e.g. 784,128,64,10
 line 2: activation functions e.g. leakyrelu,leakyrelu,leakyrelu,softmax
 line 3: loss function e.g. cce
-line 4: batch size e.g. 32
-line 5: learning rate e.g. 0.01
-lines 6 onwards: weights and biases
+line 4: optimiser algorithm e.g. adam
+line 5: batch size e.g. 32
+line 6: learning rate e.g. 0.01
+lines 7 onwards: weights and biases
 e.g.
 0.1, 0.2, -0.15, 0.3, -0.2, -0.1, 0.23, -0.3
 -0.5, 0.1 -0.2

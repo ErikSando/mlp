@@ -6,9 +6,10 @@
 #include "data/Sample.hpp"
 #include "enums/Enums.hpp"
 #include "mlp/Layer.hpp"
+#include "optimiser/OptimiserConfig.hpp"
 
 namespace mlp {
-    constexpr float UNDEFINED_CLASS = -1;
+    constexpr int UNDEFINED_CLASS = -1;
     constexpr float UNDEFINED_ERROR = -1.0f;
 
     struct ClassifyInfo {
@@ -17,12 +18,13 @@ namespace mlp {
         std::vector<float> outputs;
     };
 
-    struct ModelData {
+    struct ModelData { // the naming conventions here are inconsistent with other public member variables, maybe change it to camelCase later
         std::vector<size_t> layer_sizes;
+        size_t batch_size;
         Activation hidden_activation = Activation::NONE;
         Activation output_activation = Activation::NONE;
         Loss loss_function;
-        size_t batch_size;
+        OptimiserType optimiser_type = OptimiserType::BasicSGD;
         float learning_rate;
         std::vector<std::vector<float>> weights;
         std::vector<std::vector<float>> biases;
@@ -42,6 +44,7 @@ namespace mlp {
             const Activation hidden_activation = Activation::LEAKY_RELU,
             const Activation output_activation = Activation::SOFTMAX,
             const Loss loss_function = Loss::CCE,
+            const OptimiserType optimiser_type = OptimiserType::BasicSGD,
             const float learning_rate = 0.01f,
             const bool init_weights = true
         );
@@ -68,8 +71,8 @@ namespace mlp {
         size_t getInputCount() const { return m_layers[0]->logits.columns(); }
         constexpr size_t getBatchSize() const { return m_batchSize; }
 
-        float getLearningRate() const { return m_learningRate; }
-        void setLearningRate(float learning_rate) { m_learningRate = learning_rate; }
+        float getLearningRate() const { return m_optimiserConfig.learningRate; }
+        void setLearningRate(float learning_rate) { m_optimiserConfig.learningRate = learning_rate; }
 
         // I've decided I'm going to stick to as few getters as possible and just provide a function to export the model's data
 
@@ -87,15 +90,9 @@ namespace mlp {
 
         Context& m_context;
         size_t m_batchSize;
-        float m_learningRate;
+        // float m_learningRate;
         Loss m_lossFunction;
+        OptimiserConfig m_optimiserConfig;
         OALP m_alPair; // output activation function + loss function pair
     };
 }
-
-// #include "mlp/BackwardPass.hpp"
-// #include "mlp/CheckOutputs.hpp"
-// #include "mlp/Classify.hpp"
-// #include "mlp/ExportData.hpp"
-// #include "mlp/ForwardPass.hpp"
-// #include "mlp/Init.hpp"

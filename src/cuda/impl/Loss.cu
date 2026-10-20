@@ -3,19 +3,20 @@
 #include "enums/Enums.hpp"
 
 namespace mlp {
-    __global__ void cce_kernel(const float* outputs, const float* targets, const size_t classes, const size_t batch_size, float* result) {
+    __global__ void cce_kernel(const float* outputs, const float* targets, const size_t n_classes, const size_t batch_size, float* result) {
         unsigned int sample = blockDim.y * blockIdx.y + threadIdx.y;
         unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
 
-        if (sample >= batch_size || index >= classes || targets[sample * classes + index] != 1.0f) return;
+        if (sample >= batch_size || index >= n_classes || targets[sample * n_classes + index] != 1.0f) return;
 
-        result[sample] = -logf(outputs[sample * classes + index]);
+        result[sample] = -logf(outputs[sample * n_classes + index]);
     }
 
     void Context::computeLoss(const Matrix& outputs, const Matrix& targets, Matrix& result, const Loss loss) const {
         assert(outputs.size() == targets.size());
         assert(outputs.rows() == targets.rows());
         assert(outputs.columns() == targets.columns());
+        assert(result.size() == outputs.rows());
 
         cudaError_t err;
 

@@ -100,14 +100,28 @@ namespace mlp {
                 return false;
             }
 
-            auto it = loss_functions.find(line);
+            auto it_l = loss_functions.find(line);
 
-            if (it == loss_functions.end()) {
+            if (it_l == loss_functions.end()) {
                 std::cerr << "Error: invalid loss function '" << line << "'\n";
                 return false;
             }
 
-            data.loss_function = it->second;
+            data.loss_function = it_l->second;
+
+            if (!std::getline(file, line)) {
+                std::cerr << "Error: insufficient lines in save file, no optimiser algorithm found\n";
+                return false;
+            }
+
+            auto it_opt = optimiser_types.find(line);
+
+            if (it_opt == optimiser_types.end()) {
+                std::cerr << "Error: invalid optimiser algorithm '" << line << "'\n";
+                return false;
+            }
+
+            data.optimiser_type = it_opt->second;
 
             if (!std::getline(file, line)) {
                 std::cerr << "Error: insufficient lines in save file, no batch size found\n";

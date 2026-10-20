@@ -25,6 +25,7 @@ namespace mlp {
 
     extern std::unordered_map<std::string, Activation> activation_functions; // maybe seperate hidden and output activation functions
     extern std::unordered_map<std::string, Loss> loss_functions;
+    extern std::unordered_map<std::string, OptimiserType> optimiser_types;
 
     namespace commands {
         void train(MLP* model, Dataset& dataset, size_t n_epochs);

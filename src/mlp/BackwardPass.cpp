@@ -54,7 +54,8 @@ namespace mlp {
             Matrix& b_grads = bias_gradients.at(i);
             Layer_up& layer = m_layers[m_layers.size() - 1 - i];
 
-            m_context.optimiseLayer(layer->weights, layer->biases, w_grads, b_grads, m_learningRate);
+            // m_context.optimiseLayer(layer->weights, layer->biases, w_grads, b_grads, m_learningRate);
+            m_context.optimiseLayer(layer->weights, layer->biases, w_grads, b_grads, m_optimiserConfig);
         }
     }
 }

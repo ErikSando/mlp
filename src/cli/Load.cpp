@@ -116,17 +116,26 @@ namespace mlp {
 
             auto it_opt = optimiser_types.find(line);
 
-            if (it_opt == optimiser_types.end()) {
-                std::cerr << "Error: invalid optimiser algorithm '" << line << "'\n";
-                return false;
+            // if (it_opt == optimiser_types.end()) {
+            //     std::cerr << "Error: invalid optimiser algorithm '" << line << "'\n";
+            //     return false;
+            // }
+
+            // data.optimiser_type = it_opt->second;
+
+            if (it_opt != optimiser_types.end()) { // if there isnt a valid optimiser algorithm, assume no optimiser details are included in the save
+                data.optimiser_type = it_opt->second;
+
+                if (!std::getline(file, line)) {
+                    std::cerr << "Error: insufficient lines in save file, no batch size found\n";
+                    return false;
+                }
             }
 
-            data.optimiser_type = it_opt->second;
-
-            if (!std::getline(file, line)) {
-                std::cerr << "Error: insufficient lines in save file, no batch size found\n";
-                return false;
-            }
+            // if (!std::getline(file, line)) {
+            //     std::cerr << "Error: insufficient lines in save file, no batch size found\n";
+            //     return false;
+            // }
 
             data.batch_size = static_cast<size_t>(std::stoi(line));
 

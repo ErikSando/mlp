@@ -55,7 +55,7 @@ namespace mlp {
             file << activation_string(data.hidden_activation) << seperator << activation_string(data.output_activation) << "\n";
 
             file << loss_string(data.loss_function) << "\n";
-            file << optimiser_string(data.optimiser_type) << "\n";
+            // file << optimiser_string(data.optimiser_type) << "\n";
             file << data.batch_size << "\n";
             file << data.learning_rate << "\n";
 
